@@ -23,6 +23,7 @@ public class BioServer {
     public static void main(String[] args) throws IOException {
         ServerSocket serverSocket = new ServerSocket();
         serverSocket.bind(new InetSocketAddress(1009));
+//        accept函数和read函数，因为传统的bio技术会在这两个模块中发生堵塞情况。
         while (true) {
             // 堵塞状态 --1
             Socket socket = serverSocket.accept();
