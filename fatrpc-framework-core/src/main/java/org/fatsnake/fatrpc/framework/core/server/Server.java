@@ -11,6 +11,7 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.sctp.nio.NioSctpServerChannel;
 import io.netty.channel.socket.SocketChannel;
 import org.fatsnake.fatrpc.framework.core.common.RpcDecoder;
+import org.fatsnake.fatrpc.framework.core.common.RpcEncoder;
 import org.fatsnake.fatrpc.framework.core.common.config.ServerConfig;
 
 import java.awt.Event;
@@ -56,7 +57,7 @@ public class Server {
             @Override
             protected void initChannel(SocketChannel ch) throws Exception {
                 System.out.println("初始化provider过程");
-                ch.pipeline().addLast(new RPCEncoder());
+                ch.pipeline().addLast(new RpcEncoder());
                 ch.pipeline().addLast(new RpcDecoder());
                 ch.pipeline().addLast(new ServerHandler());
             }
@@ -77,7 +78,12 @@ public class Server {
         PROVIDER_CLASS_MAP.put(interfaceClass.getName(), serviceBean);
     }
 
-    public static void main(String[] args) {
-
+    public static void main(String[] args) throws InterruptedException {
+        Server server = new Server();
+        ServerConfig serverConfig = new ServerConfig();
+        serverConfig.setPort(9090);
+        server.setServerConfig(serverConfig);
+        server.registyService(new DataService());
+        server.startApplication();
     }
 }

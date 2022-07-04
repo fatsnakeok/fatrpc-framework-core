@@ -1,8 +1,10 @@
 package org.fatsnake.fatrpc.framework.core.common.cache;
 
+import org.fatsnake.fatrpc.framework.core.common.RpcInvocation;
+
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingDeque;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -16,6 +18,6 @@ public class CommonClientCache {
     /**
      * 队列，用于实现异步发送信息操作
      */
-    public static BlockingDeque<RpcInvocation> SEND_QUEUE = new ArrayBlockingQueue<>(100);
+    public static BlockingQueue<RpcInvocation> SEND_QUEUE = new ArrayBlockingQueue(100);
     public static Map<String, Object> REST_MAP = new ConcurrentHashMap<>();
 }

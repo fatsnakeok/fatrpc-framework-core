@@ -1,0 +1,11 @@
+package org.fatsnake.fatrpc.framework.core.proxy;
+
+/**
+ * @Auther: fatsnake
+ * @Description":
+ * @Date:2022/7/4 13:12
+ * Copyright (c) 2022, zaodao All Rights Reserved.
+ */
+public interface IProxyFactory {
+    <T> T getProxy(final Class clazz) throws Throwable;
+}
