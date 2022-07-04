@@ -5,7 +5,7 @@ import java.lang.reflect.Method;
 
 /**
  * @Auther: fatsnake
- * @Description":
+ * @Description": 各种代理工程使用同一个InvocationHandler
  * @Date:2022/7/4 13:17
  * Copyright (c) 2022, zaodao All Rights Reserved.
  */
