@@ -1,7 +1,6 @@
 package org.fatsnake.fatrpc.framework.core.proxy.javassist;
 
 import org.fatsnake.fatrpc.framework.core.proxy.IProxyFactory;
-import sun.misc.ProxyGenerator;
 
 /**
  * @Auther: fatsnake
@@ -12,6 +11,7 @@ import sun.misc.ProxyGenerator;
 public class JavassistProxyFactory implements IProxyFactory {
     @Override
     public <T> T getProxy(Class clazz) throws Throwable {
-        return (T) ProxyGenerator;
+        return (T) ProxyGenerator.newProxyInstance(Thread.currentThread().getContextClassLoader(),
+                clazz, new JavassistInvocationHandler(clazz));
     }
 }
