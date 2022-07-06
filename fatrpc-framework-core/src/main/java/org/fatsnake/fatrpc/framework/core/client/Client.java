@@ -66,7 +66,7 @@ public class Client {
         ChannelFuture channelFuture = bootstrap.connect(clientConfig.getServerAddr(), clientConfig.getPort()).sync();
         logger.info("============ 服务启动 ============");
         this.startClient(channelFuture);
-        // 注入一个代理工厂
+        // 注入一个代理工厂，在JDKClientInvocationHandler中将，
         RpcReference rpcReference = new RpcReference(new JDKProxyFactory());
         return rpcReference;
     }
@@ -111,7 +111,8 @@ public class Client {
         public void run() {
             while (true) {
                 try {
-                    //阻塞模式
+                    // 阻塞模式，取走BlockingQueue里排在首位的对象,若BlockingQueue为空,
+                    // 阻断进入等待状态直到Blocking有新的对象被加入为止
                     RpcInvocation data = SEND_QUEUE.take();
                     // 将RpcInvocation封装成RpcProtocol对象中，然后发送给服务端，这里正好对应了上文中的ServerHandler
                     String json = JSON.toJSONString(data);

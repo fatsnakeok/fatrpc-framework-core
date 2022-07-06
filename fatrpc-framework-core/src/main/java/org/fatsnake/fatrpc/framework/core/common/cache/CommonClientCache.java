@@ -19,5 +19,8 @@ public class CommonClientCache {
      * 队列，用于实现异步发送信息操作
      */
     public static BlockingQueue<RpcInvocation> SEND_QUEUE = new ArrayBlockingQueue(100);
+    /**
+     * 用于存放响应结果
+     */
     public static Map<String, Object> RESP_MAP = new ConcurrentHashMap<>();
 }
