@@ -44,6 +44,8 @@ netty内部在做数据传输的时候，需要考虑到拆包和粘包部分的
 
 ### 注册节点的结构设计
 
+此处参照了些dubbo注册节点的结构设计
+
 - 根节点：fatrpc
 - 一节节点: 不同服务名称如：com.fatsnake.data.UserService
 - 二级节点：分为provider和consumer节点
