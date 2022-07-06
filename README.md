@@ -1,5 +1,6 @@
 # fatrpc：一个自己实现的轻量级rpc框架
 
+[![OSCS Status](https://www.oscs1024.com/platform/badge/fatsnakeok/fatrpc-framework-core.svg?size=small)](https://www.oscs1024.com/project/fatsnakeok/fatrpc-framework-core?ref=badge_small)
 ## 项目目的
 纸上得来终觉浅，绝知此事要躬行
 将自己所学只是应用练手，以及公司业务技术部门培训
