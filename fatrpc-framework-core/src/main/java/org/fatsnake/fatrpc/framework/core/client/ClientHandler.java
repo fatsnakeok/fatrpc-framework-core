@@ -14,7 +14,7 @@ import static org.fatsnake.fatrpc.framework.core.common.cache.CommonClientCache.
  * @Author fatsnake
  * @Date created in 8:21 下午 2021/11/24
  */
-public class ClientHandler extends ChannelInboundHandlerAdapter {
+public class  ClientHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
@@ -30,7 +30,7 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
         }
         //将请求的响应结构放入一个Map集合中，集合的key就是uuid，这个uuid在发送请求之前就已经初始化好了，
         // 所以只需要起一个线程在后台遍历这个map，查看对应的key是否有相应即可。
-        //uuid何时放入到map？其实放入的操作我将它封装到了代理类中进行实现，这块请看下边讲解。
+        //uuid何时放入到map？其实放入的操作我将它封装到了代理类中进行实现。
         RESP_MAP.put(rpcInvocation.getUuid(),rpcInvocation);
         ReferenceCountUtil.release(msg);
     }
