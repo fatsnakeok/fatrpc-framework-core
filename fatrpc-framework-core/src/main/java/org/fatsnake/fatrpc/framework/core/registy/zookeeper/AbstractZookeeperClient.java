@@ -1,4 +1,4 @@
-package org.fatsnake.fatrpc.framework.core.registy;
+package org.fatsnake.fatrpc.framework.core.registy.zookeeper;
 
 import org.apache.zookeeper.Watcher;
 
@@ -118,6 +118,14 @@ public abstract class AbstractZookeeperClient {
      * @param data
      */
     public abstract void createTemporaryData(String address, String data);
+
+    /**
+     * 创建有序且临时类型节点数据信息
+     *
+     * @param address
+     * @param data
+     */
+    public abstract void createTemporarySeqData(String address, String data);
 
 
     /**

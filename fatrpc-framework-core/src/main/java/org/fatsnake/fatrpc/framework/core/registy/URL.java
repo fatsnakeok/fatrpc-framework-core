@@ -1,5 +1,7 @@
 package org.fatsnake.fatrpc.framework.core.registy;
 
+import org.fatsnake.fatrpc.framework.core.registy.zookeeper.ProviderNodeInfo;
+
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;

@@ -9,7 +9,6 @@ import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.data.Stat;
-import org.fatsnake.fatrpc.framework.core.registy.AbstractZookeeperClient;
 import org.fatsnake.fatrpc.framework.core.registy.URL;
 
 import java.nio.charset.StandardCharsets;
@@ -114,6 +113,15 @@ public class CuratorZookeeperClient extends AbstractZookeeperClient {
         try {
             client.create().creatingParentContainersIfNeeded().withMode(CreateMode.EPHEMERAL_SEQUENTIAL)
                     .forPath(address, data.getBytes(StandardCharsets.UTF_8));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void createTemporarySeqData(String address, String data) {
+        try {
+            client.create().creatingParentContainersIfNeeded().withMode(CreateMode.EPHEMERAL_SEQUENTIAL).forPath(address, data.getBytes());
         } catch (Exception e) {
             e.printStackTrace();
         }

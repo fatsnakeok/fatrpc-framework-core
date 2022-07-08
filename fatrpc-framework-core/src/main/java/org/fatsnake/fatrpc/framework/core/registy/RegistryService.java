@@ -36,7 +36,7 @@ public interface RegistryService {
      *
      * @param url url
      */
-    void unregister(URL url);
+    void unRegister(URL url);
 
     /**
      * 消费方订阅服务

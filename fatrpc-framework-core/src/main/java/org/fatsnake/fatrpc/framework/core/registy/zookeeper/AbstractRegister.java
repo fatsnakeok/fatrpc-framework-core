@@ -5,6 +5,9 @@ import org.fatsnake.fatrpc.framework.core.registy.URL;
 
 import java.util.List;
 
+import static org.fatsnake.fatrpc.framework.core.common.cache.CommonClientCache.SUBSCRIBE_SERVICE_LIST;
+import static org.fatsnake.fatrpc.framework.core.common.cache.CommonServerCache.PROVIDER_URL_SET;
+
 /**
  * @Auther: fatsnake
  * @Description": 对一些注册数据做统一的处理
@@ -17,23 +20,23 @@ public abstract class AbstractRegister implements RegistryService {
 
 
     @Override
-    public void register(URL url) {
-        
+    public void  register(URL url) {
+        PROVIDER_URL_SET.add(url);
     }
 
     @Override
-    public void unregister(URL url) {
-
+    public void unRegister(URL url) {
+        PROVIDER_URL_SET.remove(url);
     }
 
     @Override
     public void subscribe(URL url) {
-
+        SUBSCRIBE_SERVICE_LIST.add(url.getServiceName());
     }
 
     @Override
     public void doUnSubscribe(URL url) {
-
+        SUBSCRIBE_SERVICE_LIST.remove(url.getServiceName());
     }
 
 
