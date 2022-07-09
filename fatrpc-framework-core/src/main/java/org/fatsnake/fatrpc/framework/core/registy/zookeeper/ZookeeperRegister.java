@@ -2,6 +2,9 @@ package org.fatsnake.fatrpc.framework.core.registy.zookeeper;
 
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
+import org.fatsnake.fatrpc.framework.core.common.event.IRpcEvent;
+import org.fatsnake.fatrpc.framework.core.common.event.IRpcListenerLoader;
+import org.fatsnake.fatrpc.framework.core.common.event.IRpcUpdateEvent;
 import org.fatsnake.fatrpc.framework.core.common.event.data.URLChangeWrapper;
 import org.fatsnake.fatrpc.framework.core.registy.RegistryService;
 import org.fatsnake.fatrpc.framework.core.registy.URL;
@@ -103,12 +106,12 @@ public class ZookeeperRegister extends AbstractRegister implements RegistryServi
                 URLChangeWrapper urlChangeWrapper = new URLChangeWrapper();
                 urlChangeWrapper.setProviderUrl(childrenDataList);
                 urlChangeWrapper.setServiceName(path.split("/")[2]);
+                // 当监听到某个节点的数据发生更新之后，会发送一个节点更新的事件，然后在事件的监听端对不同的行为做出不同的事件处理操作。
                 IRpcEvent iRpcEvent = new IRpcUpdateEvent(urlChangeWrapper);
                 //自定义的一套事件监听组件
                 IRpcListenerLoader.sendEvent(iRpcEvent);
                 //收到回调之后在注册一次监听，这样能保证一直都收到消息
                 // 完成本次监听同事，注册下一次监听事件保证，事件总是有效
-
 
                 // 此处zk的坑，因为zk节点的消息通知其实是只具有一次性的功效，所以可能会出现第一次修改节点之后发送一次通知，
                 // 之后再次修改节点不再会发送节点变更通知操作。

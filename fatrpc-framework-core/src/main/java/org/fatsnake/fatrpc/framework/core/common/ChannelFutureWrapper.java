@@ -4,7 +4,7 @@ import io.netty.channel.ChannelFuture;
 
 /**
  * @Auther: fatsnake
- * @Description":
+ * @Description": 是一个自定义的包装类，将netty建立好的ChannelFuture做了一些封装
  * @Date:2022/7/6 17:19
  * Copyright (c) 2022, zaodao All Rights Reserved.
  */
