@@ -22,6 +22,7 @@ import org.fatsnake.fatrpc.framework.core.registy.URL;
 import org.fatsnake.fatrpc.framework.core.registy.zookeeper.AbstractRegister;
 import org.fatsnake.fatrpc.framework.core.registy.zookeeper.ZookeeperRegister;
 import org.fatsnake.fatrpc.framework.core.server.DataService;
+import org.fatsnake.fatrpc.framework.interfaces.IDataService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -81,6 +82,7 @@ public class Client {
         });
         iRpcListenerLoader = new IRpcListenerLoader();
         iRpcListenerLoader.init();
+        // 初始化客户端应用信息
         this.clientConfig = PropertiesBootstrap.loadClientConfigFromLocal();
         RpcReference rpcReference;
         if ("javassist".equals(clientConfig.getProxyType())) {
@@ -142,14 +144,17 @@ public class Client {
     public static void main(String[] args) throws Throwable {
         Client client = new Client();
         RpcReference rpcReference = client.initClientApplication();
-        DataService dataService = rpcReference.get(DataService.class);
-        client.doSubscribeService(DataService.class);
+        // 获取代理对象，设置缓存信息，用订阅时调用
+        IDataService dataService = rpcReference.get(IDataService.class);
+        // 订阅某个服务
+        client.doSubscribeService(IDataService.class);
         ConnectionHandler.setBootstrap(client.getBootstrap());
         client.doConnectServer();
         client.startClient();
         for (int i = 0; i < 100; i++) {
             String result = dataService.sendData("test");
             System.out.println(result);
+            Thread.sleep(1000);
         }
     }
 

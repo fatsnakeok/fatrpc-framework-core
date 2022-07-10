@@ -1,11 +1,8 @@
 package org.fatsnake.fatrpc.framework.core.server;
 
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
-import io.netty.channel.EventLoop;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.sctp.nio.NioSctpServerChannel;
@@ -19,8 +16,6 @@ import org.fatsnake.fatrpc.framework.core.registy.RegistryService;
 import org.fatsnake.fatrpc.framework.core.registy.URL;
 import org.fatsnake.fatrpc.framework.core.registy.zookeeper.ZookeeperRegister;
 
-import java.awt.Event;
-import java.util.ServiceConfigurationError;
 
 import static org.fatsnake.fatrpc.framework.core.common.cache.CommonServerCache.PROVIDER_CLASS_MAP;
 import static org.fatsnake.fatrpc.framework.core.common.cache.CommonServerCache.PROVIDER_URL_SET;
@@ -51,8 +46,8 @@ public class Server {
     }
 
     public void startApplication() throws InterruptedException {
-      bossGroup = new NioEventLoopGroup();
-      workerGroup = new NioEventLoopGroup();
+        bossGroup = new NioEventLoopGroup();
+        workerGroup = new NioEventLoopGroup();
         ServerBootstrap bootstrap = new ServerBootstrap();
         bootstrap.group(bossGroup, workerGroup);
         bootstrap.channel(NioSctpServerChannel.class);
@@ -71,6 +66,7 @@ public class Server {
                 ch.pipeline().addLast(new ServerHandler());
             }
         });
+        // 将服务端的具体服务都暴露到注册中心，方便客户端进行调用
         this.batchExportUrl();
         bootstrap.bind(serverConfig.getServerPort()).sync();
     }
@@ -85,10 +81,11 @@ public class Server {
 
     /**
      * 暴露服务信息
+     *
      * @param serviceBean
      */
     public void exportService(Object serviceBean) {
-        if(serviceBean.getClass().getInterfaces().length == 0) {
+        if (serviceBean.getClass().getInterfaces().length == 0) {
             throw new RuntimeException("service must had interfaces!");
         }
         Class[] classes = serviceBean.getClass().getInterfaces();
@@ -111,9 +108,9 @@ public class Server {
 
 
     /**
-     *  为了将服务端的具体服务都暴露到注册中心，方便客户端进行调用。
+     * 为了将服务端的具体服务都暴露到注册中心，方便客户端进行调用。
      */
-    public void batchExportUrl(){
+    public void batchExportUrl() {
         Thread task = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -131,13 +128,12 @@ public class Server {
     }
 
 
-
     public void registryService(Object serviceBean) {
         if (serviceBean.getClass().getInterfaces().length == 0) {
             throw new RuntimeException("service must had interfaces！");
         }
         Class[] classes = serviceBean.getClass().getInterfaces();
-        if (classes.length >1) {
+        if (classes.length > 1) {
             throw new RuntimeException("service must only had one interfaces!");
         }
         Class interfaceClass = classes[0];
@@ -155,6 +151,7 @@ public class Server {
         // 服务配置改为外部化
         Server server = new Server();
         server.initServerConfig();
+        // 初始化registryService，需要注册的服务信息封装URL对象，添加到PROVIDER_CLASS_MAP中，等待启动时注册到注册中心
         server.exportService(new DataService());
         server.startApplication();
 
