@@ -146,12 +146,18 @@ public class Client {
         RpcReference rpcReference = client.initClientApplication();
         // 获取代理对象，设置缓存信息，用订阅时调用
         IDataService dataService = rpcReference.get(IDataService.class);
-        // 订阅某个服务
+        // 订阅某个服务，添加本地缓存SUBSCRIBE_SERVICE_LIST
         client.doSubscribeService(IDataService.class);
         ConnectionHandler.setBootstrap(client.getBootstrap());
+        // 订阅服务，从SUBSCRIBE_SERVICE_LIST中获取需要订阅的服务信息，添加注册中心的监听
+        // 根据服务生产者信息，建立连接ChannelFuture，建立的ChannelFuture放入CONNECT_MAP
         client.doConnectServer();
+        // 开启异步线程，发送函数请求，通过队列SEND_QUEUE进行通信
         client.startClient();
         for (int i = 0; i < 100; i++) {
+            // 被代理层invoke方法，增强功能（拦截），将请求放入队列SEND_QUEUE中
+            // 异步线程asyncSendJob接收到SEND_QUEUE数据，发起netty调用；在invoke方法中3*1000时间内"死循环获取"RESP_MAP缓存中的响应数据
+            // 在ClientHandler中将请求方法，将响应数据放入RESP_MAP中
             String result = dataService.sendData("test");
             System.out.println(result);
             Thread.sleep(1000);
