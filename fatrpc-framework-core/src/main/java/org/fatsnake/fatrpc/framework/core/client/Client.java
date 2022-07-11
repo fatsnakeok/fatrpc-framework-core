@@ -113,17 +113,19 @@ public class Client {
      * 开始和各个provider建立连接
      */
     public void doConnectServer() {
-        for (String providerServiceName : SUBSCRIBE_SERVICE_LIST) {
-            List<String> providerIps = abstractRegister.getProviderIps(providerServiceName);
+        for (URL providerURL : SUBSCRIBE_SERVICE_LIST) {
+            List<String> providerIps = abstractRegister.getProviderIps(providerURL.getServiceName());
             for (String providerIp : providerIps) {
                 try {
-                    ConnectionHandler.connect(providerServiceName, providerIp);
+                    ConnectionHandler.connect(providerURL.getServiceName(), providerIp);
                 } catch (InterruptedException e) {
                     logger.error("[doConnectServer] connect fail ", e);
                 }
             }
             URL url = new URL();
-            url.setServiceName(providerServiceName);
+            url.addParameter("servicePath",providerURL.getServiceName()+"/provider");
+            url.addParameter("providerIps", JSON.toJSONString(providerIps));
+            // 这个函数内部需要订阅每个Provider目录下节点的变化信息，以及Provider目录下每个节点自身的数据变动情况
             abstractRegister.doAfterSubscribe(url);
         }
     }

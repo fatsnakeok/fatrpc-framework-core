@@ -38,7 +38,7 @@ public class CommonClientCache {
     public static ClientConfig CLIENT_CONFIG;
 
     // provider名称 --> 该服务有哪些集群URL
-    public static List<String> SUBSCRIBE_SERVICE_LIST = new ArrayList<>();
+    public static List<URL> SUBSCRIBE_SERVICE_LIST = new ArrayList<>();
     public static Map<String, List<URL>> URL_MAP = new ConcurrentHashMap<>();
     public static Set<String> SERVER_ADDRESS = new HashSet<>();
     // 每次进行远程调用的时候都是从这里去选择服务提供者

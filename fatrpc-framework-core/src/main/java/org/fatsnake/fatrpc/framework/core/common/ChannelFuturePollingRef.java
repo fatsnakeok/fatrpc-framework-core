@@ -8,7 +8,9 @@ import static org.fatsnake.fatrpc.framework.core.common.cache.CommonClientCache.
 
 /**
  * @Auther: fatsnake
- * @Description":
+ * @Description": 轮训
+ * Map集合中只需要按照服务的key查询到对应的服务调用顺序数组，接下来就是对该数组进行轮询即可，
+ * ChannelFutureRefWrapper类就是专门实现轮训效果，它的本质就是通过取模计算。
  * @Date:2022/7/11 11:33
  * Copyright (c) 2022, zaodao All Rights Reserved.
  */
