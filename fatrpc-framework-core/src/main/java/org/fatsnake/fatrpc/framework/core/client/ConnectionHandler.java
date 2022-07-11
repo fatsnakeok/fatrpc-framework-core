@@ -61,6 +61,7 @@ public class ConnectionHandler {
         channelFutureWrapper.setPort(port);
         SERVER_ADDRESS.add(providerIp);
         List<ChannelFutureWrapper> channelFutureWrappers = CONNECT_MAP.get(providerServiceName);
+        // 此处放入list，为多个相同服务的生产者做准备，路由层作准备
         if (CommonUtils.isEmptyList(channelFutureWrappers)) {
             channelFutureWrappers = new ArrayList<>();
         }
