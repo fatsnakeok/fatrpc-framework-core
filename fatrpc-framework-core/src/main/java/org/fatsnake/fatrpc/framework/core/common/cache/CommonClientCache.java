@@ -1,6 +1,5 @@
 package org.fatsnake.fatrpc.framework.core.common.cache;
 
-import jdk.internal.org.objectweb.asm.commons.StaticInitMerger;
 import org.fatsnake.fatrpc.framework.core.common.ChannelFuturePollingRef;
 import org.fatsnake.fatrpc.framework.core.common.ChannelFutureWrapper;
 import org.fatsnake.fatrpc.framework.core.common.RpcInvocation;
@@ -48,6 +47,6 @@ public class CommonClientCache {
     // 随机请求的map
     public static Map<String, ChannelFutureWrapper[]> SERVICE_ROUTER_MAP = new ConcurrentHashMap<>();
     public static ChannelFuturePollingRef CHANNEL_FUTURE_POLLING_REF = new ChannelFuturePollingRef();
-    public static IRouter router;
+    public static IRouter IROUTER;
     // -- 路由层 -- end
 }

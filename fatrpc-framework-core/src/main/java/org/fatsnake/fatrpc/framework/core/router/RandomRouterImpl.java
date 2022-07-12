@@ -13,7 +13,7 @@ import static org.fatsnake.fatrpc.framework.core.common.cache.CommonClientCache.
 
 /**
  * @Auther: fatsnake
- * @Description": 随机调用实现
+ * @Description": 随机路由调用实现
  * @Date:2022/7/11 11:26
  * Copyright (c) 2022, zaodao All Rights Reserved.
  */

@@ -21,6 +21,8 @@ import org.fatsnake.fatrpc.framework.core.proxy.jdk.JDKProxyFactory;
 import org.fatsnake.fatrpc.framework.core.registy.URL;
 import org.fatsnake.fatrpc.framework.core.registy.zookeeper.AbstractRegister;
 import org.fatsnake.fatrpc.framework.core.registy.zookeeper.ZookeeperRegister;
+import org.fatsnake.fatrpc.framework.core.router.RandomRouterImpl;
+import org.fatsnake.fatrpc.framework.core.router.RotateRouterImpl;
 import org.fatsnake.fatrpc.framework.core.server.DataService;
 import org.fatsnake.fatrpc.framework.interfaces.IDataService;
 import org.slf4j.Logger;
@@ -28,8 +30,12 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
+import static org.fatsnake.fatrpc.framework.core.common.cache.CommonClientCache.IROUTER;
 import static org.fatsnake.fatrpc.framework.core.common.cache.CommonClientCache.SEND_QUEUE;
 import static org.fatsnake.fatrpc.framework.core.common.cache.CommonClientCache.SUBSCRIBE_SERVICE_LIST;
+import static org.fatsnake.fatrpc.framework.core.common.constans.RpcConstants.JAVASSIST_PROXY_TYPE;
+import static org.fatsnake.fatrpc.framework.core.common.constans.RpcConstants.RANDOM_ROUTER_TYPE;
+import static org.fatsnake.fatrpc.framework.core.common.constans.RpcConstants.ROTATE_ROUTER_TYPE;
 
 
 /**
@@ -85,7 +91,7 @@ public class Client {
         // 初始化客户端应用信息
         this.clientConfig = PropertiesBootstrap.loadClientConfigFromLocal();
         RpcReference rpcReference;
-        if ("javassist".equals(clientConfig.getProxyType())) {
+        if (JAVASSIST_PROXY_TYPE.equals(clientConfig.getProxyType())) {
             rpcReference = new RpcReference(new JavassistProxyFactory());
         } else {
             rpcReference = new RpcReference(new JDKProxyFactory());
@@ -146,6 +152,8 @@ public class Client {
     public static void main(String[] args) throws Throwable {
         Client client = new Client();
         RpcReference rpcReference = client.initClientApplication();
+        // 初始化客户端配置，比如 路由策略
+        client.initClientConfig();
         // 获取代理对象，设置缓存信息，用订阅时调用
         IDataService dataService = rpcReference.get(IDataService.class);
         // 订阅某个服务，添加本地缓存SUBSCRIBE_SERVICE_LIST
@@ -163,6 +171,20 @@ public class Client {
             String result = dataService.sendData("test");
             System.out.println(result);
             Thread.sleep(1000);
+        }
+    }
+
+    /**
+     * 后续可以考虑加入spi
+     *
+     */
+    private void initClientConfig() {
+        // 初始化路由策略
+        String routerStrategy = clientConfig.getRouterStrategy();
+        if (RANDOM_ROUTER_TYPE.equals(routerStrategy)) {
+            IROUTER = new RandomRouterImpl();
+        } else if (ROTATE_ROUTER_TYPE.equals(routerStrategy)){
+            IROUTER = new RotateRouterImpl();
         }
     }
 
