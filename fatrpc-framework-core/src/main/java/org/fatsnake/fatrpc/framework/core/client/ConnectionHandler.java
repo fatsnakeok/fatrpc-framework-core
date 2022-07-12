@@ -5,6 +5,7 @@ import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
 import org.fatsnake.fatrpc.framework.core.common.ChannelFutureWrapper;
 import org.fatsnake.fatrpc.framework.core.common.utils.CommonUtils;
+import org.fatsnake.fatrpc.framework.core.router.Selector;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -12,7 +13,9 @@ import java.util.List;
 import java.util.Random;
 
 import static org.fatsnake.fatrpc.framework.core.common.cache.CommonClientCache.CONNECT_MAP;
+import static org.fatsnake.fatrpc.framework.core.common.cache.CommonClientCache.IROUTER;
 import static org.fatsnake.fatrpc.framework.core.common.cache.CommonClientCache.SERVER_ADDRESS;
+import static org.fatsnake.fatrpc.framework.core.common.cache.CommonClientCache.URL_MAP;
 
 
 /**
@@ -47,7 +50,7 @@ public class ConnectionHandler {
             throw new RuntimeException("bootstrap can not be null");
         }
         //格式错误类型的信息
-        if (!providerIp.contains(":")) {
+        if(!providerIp.contains(":")){
             return;
         }
         String[] providerAddress = providerIp.split(":");
@@ -55,18 +58,24 @@ public class ConnectionHandler {
         Integer port = Integer.parseInt(providerAddress[1]);
         //到底这个channelFuture里面是什么
         ChannelFuture channelFuture = bootstrap.connect(ip, port).sync();
+        String providerURLInfo = URL_MAP.get(providerServiceName).get(providerIp);
+        System.out.println(providerURLInfo);
         ChannelFutureWrapper channelFutureWrapper = new ChannelFutureWrapper();
         channelFutureWrapper.setChannelFuture(channelFuture);
         channelFutureWrapper.setHost(ip);
         channelFutureWrapper.setPort(port);
+        channelFutureWrapper.setWeight(Integer.valueOf(providerURLInfo.substring(providerURLInfo.lastIndexOf(";")+1)));
         SERVER_ADDRESS.add(providerIp);
         List<ChannelFutureWrapper> channelFutureWrappers = CONNECT_MAP.get(providerServiceName);
-        // 此处放入list，为多个相同服务的生产者做准备，路由层作准备
         if (CommonUtils.isEmptyList(channelFutureWrappers)) {
             channelFutureWrappers = new ArrayList<>();
         }
         channelFutureWrappers.add(channelFutureWrapper);
+        //例如com.sise.test.UserService会被放入到一个Map集合中，key是服务的名字，value是对应的channel通道的List集合
         CONNECT_MAP.put(providerServiceName, channelFutureWrappers);
+        Selector selector = new Selector();
+        selector.setProviderServiceName(providerServiceName);
+        IROUTER.refreshRouterArr(selector);
     }
 
     /**
