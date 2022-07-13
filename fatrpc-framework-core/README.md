@@ -94,3 +94,23 @@ netty内部在做数据传输的时候，需要考虑到拆包和粘包部分的
 - ip的hash算法
 
 ip的hash算法通常是将源地址通过hash计算，定位到具体的一台机器上。但是如果一旦某台机器出现奔溃的话，该ip的请求就会直接崩溃，对于容错性来说不强。
+
+## 8.序列化层
+RpcProtocol主要将content属性，也就是一个RpcInvocation对象如何序列化与反序列化
+### 抽出统一序列化接口
+SerializeFactory
+
+### 实现常见序列化技术
+- JDK
+- Hessian
+- Kryo
+- FastJson
+### 对序列化技术的测试
+#### 考察方向
+主要考察这个技术的吞吐量，代表性的指标：
+- 产生的码流大小
+- 序列化处理的速度
+
+往上主流答案是kryo>hessian>fastjson>jdk
+但是实际测试（jmh），FastJson效果最好，JDK效果最差
+
