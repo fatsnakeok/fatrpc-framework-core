@@ -23,19 +23,18 @@ import org.fatsnake.fatrpc.framework.core.registy.zookeeper.AbstractRegister;
 import org.fatsnake.fatrpc.framework.core.registy.zookeeper.ZookeeperRegister;
 import org.fatsnake.fatrpc.framework.core.router.RandomRouterImpl;
 import org.fatsnake.fatrpc.framework.core.router.RotateRouterImpl;
-import org.fatsnake.fatrpc.framework.core.server.DataService;
+import org.fatsnake.fatrpc.framework.core.serialize.fastjson.FastJsonSerializeFactory;
+import org.fatsnake.fatrpc.framework.core.serialize.hessian.HessianSerializeFactory;
+import org.fatsnake.fatrpc.framework.core.serialize.jdk.JdkSerializeFactory;
+import org.fatsnake.fatrpc.framework.core.serialize.kryo.KryoSerializeFactory;
 import org.fatsnake.fatrpc.framework.interfaces.IDataService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
-import static org.fatsnake.fatrpc.framework.core.common.cache.CommonClientCache.IROUTER;
-import static org.fatsnake.fatrpc.framework.core.common.cache.CommonClientCache.SEND_QUEUE;
-import static org.fatsnake.fatrpc.framework.core.common.cache.CommonClientCache.SUBSCRIBE_SERVICE_LIST;
-import static org.fatsnake.fatrpc.framework.core.common.constans.RpcConstants.JAVASSIST_PROXY_TYPE;
-import static org.fatsnake.fatrpc.framework.core.common.constans.RpcConstants.RANDOM_ROUTER_TYPE;
-import static org.fatsnake.fatrpc.framework.core.common.constans.RpcConstants.ROTATE_ROUTER_TYPE;
+import static org.fatsnake.fatrpc.framework.core.common.cache.CommonClientCache.*;
+import static org.fatsnake.fatrpc.framework.core.common.constans.RpcConstants.*;
 
 
 /**
@@ -181,10 +180,32 @@ public class Client {
     private void initClientConfig() {
         // 初始化路由策略
         String routerStrategy = clientConfig.getRouterStrategy();
-        if (RANDOM_ROUTER_TYPE.equals(routerStrategy)) {
-            IROUTER = new RandomRouterImpl();
-        } else if (ROTATE_ROUTER_TYPE.equals(routerStrategy)){
-            IROUTER = new RotateRouterImpl();
+        switch (routerStrategy) {
+            case RANDOM_ROUTER_TYPE:
+                IROUTER = new RandomRouterImpl();
+                break;
+            case ROTATE_ROUTER_TYPE:
+                IROUTER = new RotateRouterImpl();
+                break;
+            default:
+                throw new RuntimeException("no match routerStrategy for" + routerStrategy);
+        }
+        String clientSerialize = clientConfig.getClientSerialize();
+        switch (clientSerialize) {
+            case JDK_SERIALIZE_TYPE:
+                CLIENT_SERIALIZE_FACTORY = new JdkSerializeFactory();
+                break;
+            case FAST_JSON_SERIALIZE_TYPE:
+                CLIENT_SERIALIZE_FACTORY = new FastJsonSerializeFactory();
+                break;
+            case HESSIAN2_SERIALIZE_TYPE:
+                CLIENT_SERIALIZE_FACTORY = new HessianSerializeFactory();
+                break;
+            case KRYO_SERIALIZE_TYPE:
+                CLIENT_SERIALIZE_FACTORY = new KryoSerializeFactory();
+                break;
+            default:
+                throw new RuntimeException("no match serialize type for " + clientSerialize);
         }
     }
 
@@ -204,8 +225,9 @@ public class Client {
                     // 阻断进入等待状态直到Blocking有新的对象被加入为止
                     RpcInvocation data = SEND_QUEUE.take();
                     // 将RpcInvocation封装成RpcProtocol对象中，然后发送给服务端，这里正好对应了上文中的ServerHandler
-                    String json = JSON.toJSONString(data);
-                    RpcProtocol rpcProtocol = new RpcProtocol(json.getBytes());
+//                    String json = JSON.toJSONString(data);
+//                    RpcProtocol rpcProtocol = new RpcProtocol(json.getBytes());
+                    RpcProtocol rpcProtocol = new RpcProtocol(CLIENT_SERIALIZE_FACTORY.serialize(data));
                     ChannelFuture channelFuture = ConnectionHandler.getChannelFuture(data.getTargetServiceName());
                     //netty的通道负责发送数据给服务端
                     channelFuture.channel().writeAndFlush(rpcProtocol);

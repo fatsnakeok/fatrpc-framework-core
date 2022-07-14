@@ -3,22 +3,17 @@ package org.fatsnake.fatrpc.framework.core.serialize;
 import java.io.Serializable;
 
 /**
- * @Auther: fatsnake
- * @Description":
- * @Date:2022/7/13 10:08 下午
- * Copyright (c) 2022, zaodao All Rights Reserved.
+ * 测试自定义序列化技术时使用的demo
+ *
+ * @Author fatsnake
+ * @Date created in 7:28 下午 2022/1/20
  */
 public class User implements Serializable {
 
     private static final long serialVersionUID = -1728196331321496561L;
-
     private Integer id;
 
     private Long tel;
-
-    public static long getSerialVersionUID() {
-        return serialVersionUID;
-    }
 
     public Integer getId() {
         return id;
@@ -43,4 +38,5 @@ public class User implements Serializable {
                 ", tel=" + tel +
                 '}';
     }
+
 }

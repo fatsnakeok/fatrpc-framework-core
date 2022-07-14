@@ -15,10 +15,12 @@ import org.fatsnake.fatrpc.framework.core.common.utils.CommonUtils;
 import org.fatsnake.fatrpc.framework.core.registy.RegistryService;
 import org.fatsnake.fatrpc.framework.core.registy.URL;
 import org.fatsnake.fatrpc.framework.core.registy.zookeeper.ZookeeperRegister;
-
-
-import static org.fatsnake.fatrpc.framework.core.common.cache.CommonServerCache.PROVIDER_CLASS_MAP;
-import static org.fatsnake.fatrpc.framework.core.common.cache.CommonServerCache.PROVIDER_URL_SET;
+import org.fatsnake.fatrpc.framework.core.serialize.fastjson.FastJsonSerializeFactory;
+import org.fatsnake.fatrpc.framework.core.serialize.hessian.HessianSerializeFactory;
+import org.fatsnake.fatrpc.framework.core.serialize.jdk.JdkSerializeFactory;
+import org.fatsnake.fatrpc.framework.core.serialize.kryo.KryoSerializeFactory;
+import static org.fatsnake.fatrpc.framework.core.common.cache.CommonServerCache.*;
+import static org.fatsnake.fatrpc.framework.core.common.constans.RpcConstants.*;
 
 /**
  * @Auther: fatsnake
@@ -76,6 +78,24 @@ public class Server {
         // 这个对象主要是负责将properties的配置转换成本地的一个Map结构进行管理。
         ServerConfig serverConfig = PropertiesBootstrap.loadServerConfigFromLocal();
         this.setServerConfig(serverConfig);
+        String serverSerialize = serverConfig.getServerSerialize();
+        switch (serverSerialize) {
+            case JDK_SERIALIZE_TYPE:
+                SERVER_SERIALIZE_FACTORY = new JdkSerializeFactory();
+                break;
+            case FAST_JSON_SERIALIZE_TYPE:
+                SERVER_SERIALIZE_FACTORY = new FastJsonSerializeFactory();
+                break;
+            case HESSIAN2_SERIALIZE_TYPE:
+                SERVER_SERIALIZE_FACTORY = new HessianSerializeFactory();
+                break;
+            case KRYO_SERIALIZE_TYPE:
+                SERVER_SERIALIZE_FACTORY = new KryoSerializeFactory();
+                break;
+            default:
+                throw new RuntimeException("no match serialize type for" + serverSerialize);
+        }
+        System.out.println("serverSerialize is "+serverSerialize);
     }
 
 
@@ -92,8 +112,8 @@ public class Server {
         if (classes.length > 1) {
             throw new RuntimeException("service must only had one interfaces!");
         }
-        if (registryService == null) {
-            registryService = new ZookeeperRegister(serverConfig.getRegisterAddr());
+        if (REGISTRY_SERVICE == null) {
+            REGISTRY_SERVICE = new ZookeeperRegister(serverConfig.getRegisterAddr());
         }
         // 默认选择该对象的第一个实现接口
         Class interfaceClass = classes[0];
@@ -120,7 +140,7 @@ public class Server {
                     e.printStackTrace();
                 }
                 for (URL url : PROVIDER_URL_SET) {
-                    registryService.register(url);
+                    REGISTRY_SERVICE.register(url);
                 }
             }
         });

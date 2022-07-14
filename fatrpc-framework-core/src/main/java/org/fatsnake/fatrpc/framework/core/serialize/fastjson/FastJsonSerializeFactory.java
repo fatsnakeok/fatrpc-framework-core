@@ -3,7 +3,6 @@ package org.fatsnake.fatrpc.framework.core.serialize.fastjson;
 import com.alibaba.fastjson.JSON;
 import org.fatsnake.fatrpc.framework.core.serialize.SerializeFactory;
 
-import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 
 /**

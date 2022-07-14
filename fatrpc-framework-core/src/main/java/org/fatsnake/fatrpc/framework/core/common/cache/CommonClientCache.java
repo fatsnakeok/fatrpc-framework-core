@@ -6,6 +6,7 @@ import org.fatsnake.fatrpc.framework.core.common.RpcInvocation;
 import org.fatsnake.fatrpc.framework.core.common.config.ClientConfig;
 import org.fatsnake.fatrpc.framework.core.registy.URL;
 import org.fatsnake.fatrpc.framework.core.router.IRouter;
+import org.fatsnake.fatrpc.framework.core.serialize.SerializeFactory;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -50,4 +51,5 @@ public class CommonClientCache {
     public static ChannelFuturePollingRef CHANNEL_FUTURE_POLLING_REF = new ChannelFuturePollingRef();
     public static IRouter IROUTER;
     // -- 路由层 -- end
+    public static SerializeFactory CLIENT_SERIALIZE_FACTORY;
 }

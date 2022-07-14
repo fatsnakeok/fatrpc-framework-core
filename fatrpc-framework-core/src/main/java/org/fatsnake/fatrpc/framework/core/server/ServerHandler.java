@@ -11,6 +11,7 @@ import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 
 import static org.fatsnake.fatrpc.framework.core.common.cache.CommonServerCache.PROVIDER_CLASS_MAP;
+import static org.fatsnake.fatrpc.framework.core.common.cache.CommonServerCache.SERVER_SERIALIZE_FACTORY;
 
 /**
  * @Auther: fatsnake
@@ -24,8 +25,9 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         RpcProtocol rpcProtocol = (RpcProtocol) msg;
-        String json = new String(rpcProtocol.getContent(), 0, rpcProtocol.getContentLength());
-        RpcInvocation rpcInvocation = JSON.parseObject(json, RpcInvocation.class);
+//        String json = new String(rpcProtocol.getContent(), 0, rpcProtocol.getContentLength());
+//        RpcInvocation rpcInvocation = JSON.parseObject(json, RpcInvocation.class);
+        RpcInvocation rpcInvocation =SERVER_SERIALIZE_FACTORY.deserialize(rpcProtocol.getContent(),RpcInvocation.class);
         Object aimObject = PROVIDER_CLASS_MAP.get(rpcInvocation.getTargetServiceName());
         Method[] methods = aimObject.getClass().getDeclaredMethods();
         Object result = null;
@@ -41,7 +43,8 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
         }
 
         rpcInvocation.setResponse(result);
-        RpcProtocol respRpcProtocol = new RpcProtocol(JSON.toJSONString(rpcProtocol).getBytes(StandardCharsets.UTF_8));
+//        RpcProtocol respRpcProtocol = new RpcProtocol(JSON.toJSONString(rpcProtocol).getBytes(StandardCharsets.UTF_8));
+        RpcProtocol respRpcProtocol = new RpcProtocol(SERVER_SERIALIZE_FACTORY.serialize(rpcInvocation));
         ctx.writeAndFlush(respRpcProtocol);
     }
 
