@@ -1,6 +1,8 @@
 package org.fatsnake.fatrpc.framework.core.common;
 
 import java.util.Arrays;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @Auther: fatsnake
@@ -36,6 +38,15 @@ public class RpcInvocation {
      */
     private Object response;
 
+    private Map<String, Object> attachments = new ConcurrentHashMap<>();
+
+    public Map<String, Object> getAttachments() {
+        return attachments;
+    }
+
+    public void setAttachments(Map<String, Object> attachments) {
+        this.attachments = attachments;
+    }
 
     @Override
     public String toString() {

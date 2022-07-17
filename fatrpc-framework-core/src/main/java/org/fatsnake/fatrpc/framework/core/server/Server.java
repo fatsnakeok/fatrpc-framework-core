@@ -12,6 +12,9 @@ import org.fatsnake.fatrpc.framework.core.common.RpcEncoder;
 import org.fatsnake.fatrpc.framework.core.common.config.PropertiesBootstrap;
 import org.fatsnake.fatrpc.framework.core.common.config.ServerConfig;
 import org.fatsnake.fatrpc.framework.core.common.utils.CommonUtils;
+import org.fatsnake.fatrpc.framework.core.filter.server.ServerFilterChain;
+import org.fatsnake.fatrpc.framework.core.filter.server.ServerLogFilterImpl;
+import org.fatsnake.fatrpc.framework.core.filter.server.ServerTokenFilterImpl;
 import org.fatsnake.fatrpc.framework.core.registy.RegistryService;
 import org.fatsnake.fatrpc.framework.core.registy.URL;
 import org.fatsnake.fatrpc.framework.core.registy.zookeeper.ZookeeperRegister;
@@ -78,6 +81,7 @@ public class Server {
         // 这个对象主要是负责将properties的配置转换成本地的一个Map结构进行管理。
         ServerConfig serverConfig = PropertiesBootstrap.loadServerConfigFromLocal();
         this.setServerConfig(serverConfig);
+        // 初始化序列化策略
         String serverSerialize = serverConfig.getServerSerialize();
         switch (serverSerialize) {
             case JDK_SERIALIZE_TYPE:
@@ -96,6 +100,13 @@ public class Server {
                 throw new RuntimeException("no match serialize type for" + serverSerialize);
         }
         System.out.println("serverSerialize is "+serverSerialize);
+        SERVER_CONFIG = serverConfig;
+        // 初始化服务端调用链 ，确定顺序
+        ServerFilterChain serverFilterChain = new ServerFilterChain();
+        serverFilterChain.addServerFilter(new ServerLogFilterImpl());
+        serverFilterChain.addServerFilter(new ServerTokenFilterImpl());
+        SERVER_FILTER_CHAIN = serverFilterChain;
+
     }
 
 

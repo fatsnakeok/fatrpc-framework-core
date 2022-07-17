@@ -4,6 +4,7 @@ import org.fatsnake.fatrpc.framework.core.common.ChannelFuturePollingRef;
 import org.fatsnake.fatrpc.framework.core.common.ChannelFutureWrapper;
 import org.fatsnake.fatrpc.framework.core.common.RpcInvocation;
 import org.fatsnake.fatrpc.framework.core.common.config.ClientConfig;
+import org.fatsnake.fatrpc.framework.core.filter.client.ClientFilterChain;
 import org.fatsnake.fatrpc.framework.core.registy.URL;
 import org.fatsnake.fatrpc.framework.core.router.IRouter;
 import org.fatsnake.fatrpc.framework.core.serialize.SerializeFactory;
@@ -34,9 +35,6 @@ public class CommonClientCache {
      */
     public static Map<String, Object> RESP_MAP = new ConcurrentHashMap<>();
 
-
-    public static ClientConfig CLIENT_CONFIG;
-
     // provider名称 --> 该服务有哪些集群URL
     public static List<URL> SUBSCRIBE_SERVICE_LIST = new ArrayList<>();
     //com.sise.test.service -> <<ip:host,urlString>,<ip:host,urlString>,<ip:host,urlString>>
@@ -52,4 +50,6 @@ public class CommonClientCache {
     public static IRouter IROUTER;
     // -- 路由层 -- end
     public static SerializeFactory CLIENT_SERIALIZE_FACTORY;
+    public static ClientConfig CLIENT_CONFIG; // CLient.initClientApplication
+    public static ClientFilterChain CLIENT_FILTER_CHAIN;
 }

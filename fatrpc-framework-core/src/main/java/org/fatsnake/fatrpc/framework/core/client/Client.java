@@ -16,6 +16,10 @@ import org.fatsnake.fatrpc.framework.core.common.config.ClientConfig;
 import org.fatsnake.fatrpc.framework.core.common.config.PropertiesBootstrap;
 import org.fatsnake.fatrpc.framework.core.common.event.IRpcListenerLoader;
 import org.fatsnake.fatrpc.framework.core.common.utils.CommonUtils;
+import org.fatsnake.fatrpc.framework.core.filter.client.ClientFilterChain;
+import org.fatsnake.fatrpc.framework.core.filter.client.ClientLogFilterImpl;
+import org.fatsnake.fatrpc.framework.core.filter.client.DirectInvokeFilterImpl;
+import org.fatsnake.fatrpc.framework.core.filter.client.GroupFilterImpl;
 import org.fatsnake.fatrpc.framework.core.proxy.javassist.JavassistProxyFactory;
 import org.fatsnake.fatrpc.framework.core.proxy.jdk.JDKProxyFactory;
 import org.fatsnake.fatrpc.framework.core.registy.URL;
@@ -89,6 +93,7 @@ public class Client {
         iRpcListenerLoader.init();
         // 初始化客户端应用信息
         this.clientConfig = PropertiesBootstrap.loadClientConfigFromLocal();
+        CLIENT_CONFIG = this.clientConfig;
         RpcReference rpcReference;
         if (JAVASSIST_PROXY_TYPE.equals(clientConfig.getProxyType())) {
             rpcReference = new RpcReference(new JavassistProxyFactory());
@@ -153,6 +158,11 @@ public class Client {
         RpcReference rpcReference = client.initClientApplication();
         // 初始化客户端配置，比如 路由策略
         client.initClientConfig();
+        // 塞入包装类参数（用于过滤链）和 反射生成对象
+
+
+
+
         // 获取代理对象，设置缓存信息，用订阅时调用
         IDataService dataService = rpcReference.get(IDataService.class);
         // 订阅某个服务，添加本地缓存SUBSCRIBE_SERVICE_LIST
@@ -190,6 +200,7 @@ public class Client {
             default:
                 throw new RuntimeException("no match routerStrategy for" + routerStrategy);
         }
+        // 初始化序列化策略
         String clientSerialize = clientConfig.getClientSerialize();
         switch (clientSerialize) {
             case JDK_SERIALIZE_TYPE:
@@ -207,6 +218,14 @@ public class Client {
             default:
                 throw new RuntimeException("no match serialize type for " + clientSerialize);
         }
+        // 初始化过滤链 指定过滤顺序
+        // todo 此处硬编码了，后续优化为外置化配置
+        ClientFilterChain clientFilterChain = new ClientFilterChain();
+        clientFilterChain.addClientFilter(new DirectInvokeFilterImpl());
+        clientFilterChain.addClientFilter(new GroupFilterImpl());
+        clientFilterChain.addClientFilter(new ClientLogFilterImpl());
+        CLIENT_FILTER_CHAIN = clientFilterChain;
+
     }
 
 
