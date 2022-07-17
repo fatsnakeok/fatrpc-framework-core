@@ -1,5 +1,6 @@
 package org.fatsnake.fatrpc.framework.core.proxy.jdk;
 
+import org.fatsnake.fatrpc.framework.core.client.RpcReferenceWrapper;
 import org.fatsnake.fatrpc.framework.core.proxy.IProxyFactory;
 
 import java.lang.reflect.Proxy;
@@ -12,8 +13,8 @@ import java.lang.reflect.Proxy;
  */
 public class JDKProxyFactory implements IProxyFactory {
     @Override
-    public <T> T getProxy(Class clazz) throws Throwable {
-        return (T) Proxy.newProxyInstance(clazz.getClassLoader(), new Class[]{clazz},
-                new JDKClientInvocationHandler(clazz));
+    public <T> T getProxy(RpcReferenceWrapper rpcReferenceWrapper) throws Throwable {
+        return (T) Proxy.newProxyInstance(rpcReferenceWrapper.getAimClass().getClassLoader(), new Class[]{rpcReferenceWrapper.getAimClass()},
+                new JDKClientInvocationHandler(rpcReferenceWrapper));
     }
 }

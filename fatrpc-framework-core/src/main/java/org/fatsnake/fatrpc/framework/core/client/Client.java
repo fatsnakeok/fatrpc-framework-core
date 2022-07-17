@@ -159,12 +159,12 @@ public class Client {
         // 初始化客户端配置，比如 路由策略
         client.initClientConfig();
         // 塞入包装类参数（用于过滤链）和 反射生成对象
-
-
-
-
+        RpcReferenceWrapper<IDataService> rpcReferenceWrapper = new RpcReferenceWrapper<>();
+        rpcReferenceWrapper.setAimClass(IDataService.class);
+        rpcReferenceWrapper.setGroup("dev");
+        rpcReferenceWrapper.setServiceToken("token-a");
         // 获取代理对象，设置缓存信息，用订阅时调用
-        IDataService dataService = rpcReference.get(IDataService.class);
+        IDataService dataService = rpcReference.get(rpcReferenceWrapper);
         // 订阅某个服务，添加本地缓存SUBSCRIBE_SERVICE_LIST
         client.doSubscribeService(IDataService.class);
         ConnectionHandler.setBootstrap(client.getBootstrap());
@@ -242,14 +242,16 @@ public class Client {
                 try {
                     // 阻塞模式，取走BlockingQueue里排在首位的对象,若BlockingQueue为空,
                     // 阻断进入等待状态直到Blocking有新的对象被加入为止
-                    RpcInvocation data = SEND_QUEUE.take();
+                    RpcInvocation rpcInvocation = SEND_QUEUE.take();
                     // 将RpcInvocation封装成RpcProtocol对象中，然后发送给服务端，这里正好对应了上文中的ServerHandler
 //                    String json = JSON.toJSONString(data);
 //                    RpcProtocol rpcProtocol = new RpcProtocol(json.getBytes());
-                    RpcProtocol rpcProtocol = new RpcProtocol(CLIENT_SERIALIZE_FACTORY.serialize(data));
-                    ChannelFuture channelFuture = ConnectionHandler.getChannelFuture(data.getTargetServiceName());
-                    //netty的通道负责发送数据给服务端
-                    channelFuture.channel().writeAndFlush(rpcProtocol);
+                    ChannelFuture channelFuture = ConnectionHandler.getChannelFuture(rpcInvocation);
+                    if (channelFuture != null) {
+                        RpcProtocol rpcProtocol = new RpcProtocol(CLIENT_SERIALIZE_FACTORY.serialize(rpcInvocation));
+                        //netty的通道负责发送数据给服务端
+                        channelFuture.channel().writeAndFlush(rpcProtocol);
+                    }
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }

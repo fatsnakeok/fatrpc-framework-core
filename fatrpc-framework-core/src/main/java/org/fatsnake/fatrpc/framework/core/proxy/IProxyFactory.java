@@ -1,5 +1,7 @@
 package org.fatsnake.fatrpc.framework.core.proxy;
 
+import org.fatsnake.fatrpc.framework.core.client.RpcReferenceWrapper;
+
 /**
  * @Auther: fatsnake
  * @Description":
@@ -7,5 +9,5 @@ package org.fatsnake.fatrpc.framework.core.proxy;
  * Copyright (c) 2022, zaodao All Rights Reserved.
  */
 public interface IProxyFactory {
-    <T> T getProxy(final Class clazz) throws Throwable;
+    <T> T getProxy(final RpcReferenceWrapper rpcReferenceWrapper) throws Throwable;
 }

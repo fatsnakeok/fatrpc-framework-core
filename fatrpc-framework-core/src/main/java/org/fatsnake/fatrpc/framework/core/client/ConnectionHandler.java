@@ -1,20 +1,25 @@
 package org.fatsnake.fatrpc.framework.core.client;
 
 
+import com.sun.org.apache.bcel.internal.generic.Select;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
 import org.fatsnake.fatrpc.framework.core.common.ChannelFutureWrapper;
+import org.fatsnake.fatrpc.framework.core.common.RpcInvocation;
 import org.fatsnake.fatrpc.framework.core.common.utils.CommonUtils;
 import org.fatsnake.fatrpc.framework.core.router.Selector;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 
+import static org.fatsnake.fatrpc.framework.core.common.cache.CommonClientCache.CLIENT_FILTER_CHAIN;
 import static org.fatsnake.fatrpc.framework.core.common.cache.CommonClientCache.CONNECT_MAP;
 import static org.fatsnake.fatrpc.framework.core.common.cache.CommonClientCache.IROUTER;
 import static org.fatsnake.fatrpc.framework.core.common.cache.CommonClientCache.SERVER_ADDRESS;
+import static org.fatsnake.fatrpc.framework.core.common.cache.CommonClientCache.SERVICE_ROUTER_MAP;
 import static org.fatsnake.fatrpc.framework.core.common.cache.CommonClientCache.URL_MAP;
 
 
@@ -114,15 +119,22 @@ public class ConnectionHandler {
     /**
      * 默认走随机策略获取ChannelFuture
      *
-     * @param providerServiceName
+     * @param rpcInvocation
      * @return
      */
-    public static ChannelFuture getChannelFuture(String providerServiceName) {
-        List<ChannelFutureWrapper> channelFutureWrappers = CONNECT_MAP.get(providerServiceName);
-        if (CommonUtils.isEmptyList(channelFutureWrappers)) {
+    public static ChannelFuture getChannelFuture(RpcInvocation rpcInvocation) {
+        String providerServiceName = rpcInvocation.getTargetServiceName();
+        ChannelFutureWrapper[] channelFutureWrappers = SERVICE_ROUTER_MAP.get(providerServiceName);
+        if (channelFutureWrappers == null || channelFutureWrappers.length == 0) {
             throw new RuntimeException("no provider exist for " + providerServiceName);
         }
-        ChannelFuture channelFuture = channelFutureWrappers.get(new Random().nextInt(channelFutureWrappers.size())).getChannelFuture();
+        // 客户端责任链插入位置
+        // 选择在这里插入的原因是，客户端在获取到目标方的channel集合之后需要进行筛选过滤，最终才会发起真正的请求。
+        CLIENT_FILTER_CHAIN.doFilter(Arrays.asList(channelFutureWrappers), rpcInvocation);
+        Selector selector = new Selector();
+        selector.setProviderServiceName(providerServiceName);
+        selector.setChannelFutureWrappers(channelFutureWrappers);
+        ChannelFuture channelFuture = IROUTER.select(selector).getChannelFuture();
         return channelFuture;
     }
 

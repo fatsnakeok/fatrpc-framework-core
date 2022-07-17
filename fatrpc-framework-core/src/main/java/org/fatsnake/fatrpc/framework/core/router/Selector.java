@@ -1,5 +1,7 @@
 package org.fatsnake.fatrpc.framework.core.router;
 
+import org.fatsnake.fatrpc.framework.core.common.ChannelFutureWrapper;
+
 /**
  * @Auther: fatsnake
  * @Description":
@@ -13,6 +15,19 @@ public class Selector {
      * eg: com.fat.test.DataService
      */
     private String providerServiceName;
+
+    /**
+     * 经过二次筛选之后的future集合
+     */
+    private ChannelFutureWrapper[] channelFutureWrappers;
+
+    public ChannelFutureWrapper[] getChannelFutureWrappers() {
+        return channelFutureWrappers;
+    }
+
+    public void setChannelFutureWrappers(ChannelFutureWrapper[] channelFutureWrappers) {
+        this.channelFutureWrappers = channelFutureWrappers;
+    }
 
     public String getProviderServiceName() {
         return providerServiceName;

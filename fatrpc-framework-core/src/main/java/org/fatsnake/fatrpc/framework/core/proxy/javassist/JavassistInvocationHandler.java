@@ -1,6 +1,7 @@
 package org.fatsnake.fatrpc.framework.core.proxy.javassist;
 
 
+import org.fatsnake.fatrpc.framework.core.client.RpcReferenceWrapper;
 import org.fatsnake.fatrpc.framework.core.common.RpcInvocation;
 
 import java.lang.reflect.InvocationHandler;
@@ -21,10 +22,10 @@ public class JavassistInvocationHandler implements InvocationHandler {
 
     private final static Object OBJECT = new Object();
 
-    private Class<?> clazz;
+    private RpcReferenceWrapper rpcReferenceWrapper;
 
-    public JavassistInvocationHandler(Class<?> clazz) {
-        this.clazz = clazz;
+    public JavassistInvocationHandler(RpcReferenceWrapper rpcReferenceWrapper) {
+        this.rpcReferenceWrapper = rpcReferenceWrapper;
     }
 
     @Override
@@ -32,7 +33,8 @@ public class JavassistInvocationHandler implements InvocationHandler {
         RpcInvocation rpcInvocation = new RpcInvocation();
         rpcInvocation.setArgs(args);
         rpcInvocation.setTargetMethod(method.getName());
-        rpcInvocation.setTargetServiceName(clazz.getName());
+        rpcInvocation.setTargetServiceName(rpcReferenceWrapper.getAimClass().getName());
+        rpcInvocation.setAttachments(rpcReferenceWrapper.getAttatchments());
         rpcInvocation.setUuid(UUID.randomUUID().toString());
         RESP_MAP.put(rpcInvocation.getUuid(), OBJECT);
         //代理类内部将请求放入到发送队列中，等待发送队列发送请求
