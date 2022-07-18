@@ -9,6 +9,7 @@
 
     <modules>
         <module>fatrpc-framework-core</module>
+        <module>fatrpc-framework-interface</module>
     </modules>
 
     <packaging>pom</packaging>
