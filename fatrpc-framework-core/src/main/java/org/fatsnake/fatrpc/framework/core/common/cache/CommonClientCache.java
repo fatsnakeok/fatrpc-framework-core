@@ -6,8 +6,10 @@ import org.fatsnake.fatrpc.framework.core.common.RpcInvocation;
 import org.fatsnake.fatrpc.framework.core.common.config.ClientConfig;
 import org.fatsnake.fatrpc.framework.core.filter.client.ClientFilterChain;
 import org.fatsnake.fatrpc.framework.core.registy.URL;
+import org.fatsnake.fatrpc.framework.core.registy.zookeeper.AbstractRegister;
 import org.fatsnake.fatrpc.framework.core.router.IRouter;
 import org.fatsnake.fatrpc.framework.core.serialize.SerializeFactory;
+import org.fatsnake.fatrpc.framework.core.spi.ExtensionLoader;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -52,4 +54,6 @@ public class CommonClientCache {
     public static SerializeFactory CLIENT_SERIALIZE_FACTORY;
     public static ClientConfig CLIENT_CONFIG; // CLient.initClientApplication
     public static ClientFilterChain CLIENT_FILTER_CHAIN;
+    public static AbstractRegister  ABSTRACT_REGISTER;
+    public static ExtensionLoader  EXTENSION_LOADER = new ExtensionLoader();
 }

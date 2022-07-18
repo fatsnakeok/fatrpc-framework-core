@@ -8,6 +8,7 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import javassist.util.proxy.ProxyFactory;
 import org.fatsnake.fatrpc.framework.core.common.RpcDecoder;
 import org.fatsnake.fatrpc.framework.core.common.RpcEncoder;
 import org.fatsnake.fatrpc.framework.core.common.RpcInvocation;
@@ -20,6 +21,7 @@ import org.fatsnake.fatrpc.framework.core.filter.client.ClientFilterChain;
 import org.fatsnake.fatrpc.framework.core.filter.client.ClientLogFilterImpl;
 import org.fatsnake.fatrpc.framework.core.filter.client.DirectInvokeFilterImpl;
 import org.fatsnake.fatrpc.framework.core.filter.client.GroupFilterImpl;
+import org.fatsnake.fatrpc.framework.core.proxy.IProxyFactory;
 import org.fatsnake.fatrpc.framework.core.proxy.javassist.JavassistProxyFactory;
 import org.fatsnake.fatrpc.framework.core.proxy.jdk.JDKProxyFactory;
 import org.fatsnake.fatrpc.framework.core.registy.URL;
@@ -35,10 +37,13 @@ import org.fatsnake.fatrpc.framework.interfaces.IDataService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 import static org.fatsnake.fatrpc.framework.core.common.cache.CommonClientCache.*;
 import static org.fatsnake.fatrpc.framework.core.common.constans.RpcConstants.*;
+import static org.fatsnake.fatrpc.framework.core.spi.ExtensionLoader.EXTENSION_LOADER_CLASS_CACHE;
 
 
 /**
@@ -77,7 +82,7 @@ public class Client {
         this.clientConfig = clientConfig;
     }
 
-    public RpcReference initClientApplication() {
+    public RpcReference initClientApplication() throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
         EventLoopGroup clientGroup = new NioEventLoopGroup();
         bootstrap.group(clientGroup);
         bootstrap.channel(NioSocketChannel.class);
@@ -94,13 +99,15 @@ public class Client {
         // 初始化客户端应用信息
         this.clientConfig = PropertiesBootstrap.loadClientConfigFromLocal();
         CLIENT_CONFIG = this.clientConfig;
-        RpcReference rpcReference;
-        if (JAVASSIST_PROXY_TYPE.equals(clientConfig.getProxyType())) {
-            rpcReference = new RpcReference(new JavassistProxyFactory());
-        } else {
-            rpcReference = new RpcReference(new JDKProxyFactory());
-        }
-        return rpcReference;
+
+        // spi扩展的加载部分
+        this.initClientConfig();
+        EXTENSION_LOADER.loadExtension(IProxyFactory.class);
+        String proxyType = clientConfig.getProxyType();
+        LinkedHashMap<String, Class> classMap = EXTENSION_LOADER_CLASS_CACHE.get(IProxyFactory.class.getName());
+        Class proxyClassType = classMap.get(proxyType);
+        IProxyFactory proxyFactory = (IProxyFactory) proxyClassType.newInstance();
+        return new RpcReference(proxyFactory);
     }
 
     /**
