@@ -1,5 +1,6 @@
 package org.fatsnake.fatrpc.framework.core.proxy.jdk;
 
+import org.fatsnake.fatrpc.framework.core.client.RpcReferenceWrapper;
 import org.fatsnake.fatrpc.framework.core.common.RpcInvocation;
 
 import java.lang.reflect.InvocationHandler;
@@ -25,10 +26,10 @@ public class JDKClientInvocationHandler implements InvocationHandler {
 
     private final static Object OBJECT = new Object();
 
-    private Class<?> clazz;
+    private RpcReferenceWrapper rpcReferenceWrapper;
 
-    public JDKClientInvocationHandler(Class<?> clazz) {
-        this.clazz = clazz;
+    public JDKClientInvocationHandler(RpcReferenceWrapper rpcReferenceWrapper) {
+        this.rpcReferenceWrapper = rpcReferenceWrapper;
     }
 
 
@@ -47,9 +48,11 @@ public class JDKClientInvocationHandler implements InvocationHandler {
         RpcInvocation rpcInvocation = new RpcInvocation();
         rpcInvocation.setArgs(args);
         rpcInvocation.setTargetMethod(method.getName());
-        rpcInvocation.setTargetServiceName(clazz.getName());
+        rpcInvocation.setTargetServiceName(rpcReferenceWrapper.getAimClass().getName());
         //这里面注入了一个uuid，对每一次的请求都做单独区分
         rpcInvocation.setUuid(UUID.randomUUID().toString());
+        // 设置参数，用于责任链校验
+        rpcInvocation.setAttachments(rpcReferenceWrapper.getAttatchments());
         // 为什么不是  RESP_MAP.put(rpcInvocation.getUuid(), rpcInvocation);？
         // invoke内部有一个while循环的逻辑，它会不断地从RESP_MAP中提取响应结果，
         //  如果对应的结果是RpcInvocation类型才会进行解析，否则会继续循环等待

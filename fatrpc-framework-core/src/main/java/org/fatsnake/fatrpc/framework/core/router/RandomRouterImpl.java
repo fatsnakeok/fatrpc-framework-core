@@ -9,11 +9,12 @@ import java.util.Random;
 
 import static org.fatsnake.fatrpc.framework.core.common.cache.CommonClientCache.CHANNEL_FUTURE_POLLING_REF;
 import static org.fatsnake.fatrpc.framework.core.common.cache.CommonClientCache.CONNECT_MAP;
+import static org.fatsnake.fatrpc.framework.core.common.cache.CommonClientCache.IROUTER;
 import static org.fatsnake.fatrpc.framework.core.common.cache.CommonClientCache.SERVICE_ROUTER_MAP;
 
 /**
  * @Auther: fatsnake
- * @Description": 随机调用实现
+ * @Description": 随机路由调用实现
  * @Date:2022/7/11 11:26
  * Copyright (c) 2022, zaodao All Rights Reserved.
  */
@@ -30,6 +31,10 @@ public class RandomRouterImpl implements IRouter {
             arr[i] = channelFutureWrapperList.get(result[i]);
         }
         SERVICE_ROUTER_MAP.put(selector.getProviderServiceName(), arr);
+        URL url = new URL();
+        url.setServiceName(selector.getProviderServiceName());
+        // 更细权重
+        IROUTER.updateWeight(url);
     }
 
 

@@ -11,7 +11,7 @@ import java.util.Properties;
 /**
  * 配置加载器
  *
- * @Author linhao
+ * @Author fatsnake
  * @Date created in 10:39 上午 2021/12/12
  */
 public class PropertiesLoader {
@@ -20,7 +20,7 @@ public class PropertiesLoader {
 
     private static Map<String, String> propertiesMap = new HashMap<>();
 
-    private static String DEFAULT_PROPERTIES_FILE = "/Users/liuxin/Documents/ideaProject/fatrpc-framework/fatrpc-framework-core/src/main/resources/irpc.properties";
+    private static String DEFAULT_PROPERTIES_FILE = "/Users/liuxin/Documents/ideaProject/fatrpc-framework/fatrpc-framework-core/src/main/resources/fatrpc.properties";
 
     //todo 如果这里直接使用static修饰是否可以？
     public static void loadConfiguration() throws IOException {
@@ -31,6 +31,19 @@ public class PropertiesLoader {
         FileInputStream in = null;
         in = new FileInputStream(DEFAULT_PROPERTIES_FILE);
         properties.load(in);
+    }
+
+    public static String getPropertiesNotBlank(String key) {
+        String val = getPropertiesStr(key);
+        if (val == null || val.equals("")) {
+            throw new IllegalArgumentException(key + " 配置为空异常");
+        }
+        return val;
+    }
+
+    public static String getPropertiesStrDefault(String key, String defaultVal) {
+        String val = getPropertiesStr(key);
+        return val == null || val.equals("") ? defaultVal : val;
     }
 
     /**

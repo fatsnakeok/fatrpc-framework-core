@@ -16,20 +16,29 @@ import org.fatsnake.fatrpc.framework.core.common.config.ClientConfig;
 import org.fatsnake.fatrpc.framework.core.common.config.PropertiesBootstrap;
 import org.fatsnake.fatrpc.framework.core.common.event.IRpcListenerLoader;
 import org.fatsnake.fatrpc.framework.core.common.utils.CommonUtils;
+import org.fatsnake.fatrpc.framework.core.filter.client.ClientFilterChain;
+import org.fatsnake.fatrpc.framework.core.filter.client.ClientLogFilterImpl;
+import org.fatsnake.fatrpc.framework.core.filter.client.DirectInvokeFilterImpl;
+import org.fatsnake.fatrpc.framework.core.filter.client.GroupFilterImpl;
 import org.fatsnake.fatrpc.framework.core.proxy.javassist.JavassistProxyFactory;
 import org.fatsnake.fatrpc.framework.core.proxy.jdk.JDKProxyFactory;
 import org.fatsnake.fatrpc.framework.core.registy.URL;
 import org.fatsnake.fatrpc.framework.core.registy.zookeeper.AbstractRegister;
 import org.fatsnake.fatrpc.framework.core.registy.zookeeper.ZookeeperRegister;
-import org.fatsnake.fatrpc.framework.core.server.DataService;
+import org.fatsnake.fatrpc.framework.core.router.RandomRouterImpl;
+import org.fatsnake.fatrpc.framework.core.router.RotateRouterImpl;
+import org.fatsnake.fatrpc.framework.core.serialize.fastjson.FastJsonSerializeFactory;
+import org.fatsnake.fatrpc.framework.core.serialize.hessian.HessianSerializeFactory;
+import org.fatsnake.fatrpc.framework.core.serialize.jdk.JdkSerializeFactory;
+import org.fatsnake.fatrpc.framework.core.serialize.kryo.KryoSerializeFactory;
 import org.fatsnake.fatrpc.framework.interfaces.IDataService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
-import static org.fatsnake.fatrpc.framework.core.common.cache.CommonClientCache.SEND_QUEUE;
-import static org.fatsnake.fatrpc.framework.core.common.cache.CommonClientCache.SUBSCRIBE_SERVICE_LIST;
+import static org.fatsnake.fatrpc.framework.core.common.cache.CommonClientCache.*;
+import static org.fatsnake.fatrpc.framework.core.common.constans.RpcConstants.*;
 
 
 /**
@@ -84,8 +93,9 @@ public class Client {
         iRpcListenerLoader.init();
         // 初始化客户端应用信息
         this.clientConfig = PropertiesBootstrap.loadClientConfigFromLocal();
+        CLIENT_CONFIG = this.clientConfig;
         RpcReference rpcReference;
-        if ("javassist".equals(clientConfig.getProxyType())) {
+        if (JAVASSIST_PROXY_TYPE.equals(clientConfig.getProxyType())) {
             rpcReference = new RpcReference(new JavassistProxyFactory());
         } else {
             rpcReference = new RpcReference(new JDKProxyFactory());
@@ -146,8 +156,15 @@ public class Client {
     public static void main(String[] args) throws Throwable {
         Client client = new Client();
         RpcReference rpcReference = client.initClientApplication();
+        // 初始化客户端配置，比如 路由策略
+        client.initClientConfig();
+        // 塞入包装类参数（用于过滤链）和 反射生成对象
+        RpcReferenceWrapper<IDataService> rpcReferenceWrapper = new RpcReferenceWrapper<>();
+        rpcReferenceWrapper.setAimClass(IDataService.class);
+        rpcReferenceWrapper.setGroup("dev");
+        rpcReferenceWrapper.setServiceToken("token-a");
         // 获取代理对象，设置缓存信息，用订阅时调用
-        IDataService dataService = rpcReference.get(IDataService.class);
+        IDataService dataService = rpcReference.get(rpcReferenceWrapper);
         // 订阅某个服务，添加本地缓存SUBSCRIBE_SERVICE_LIST
         client.doSubscribeService(IDataService.class);
         ConnectionHandler.setBootstrap(client.getBootstrap());
@@ -166,6 +183,51 @@ public class Client {
         }
     }
 
+    /**
+     * 后续可以考虑加入spi
+     *
+     */
+    private void initClientConfig() {
+        // 初始化路由策略
+        String routerStrategy = clientConfig.getRouterStrategy();
+        switch (routerStrategy) {
+            case RANDOM_ROUTER_TYPE:
+                IROUTER = new RandomRouterImpl();
+                break;
+            case ROTATE_ROUTER_TYPE:
+                IROUTER = new RotateRouterImpl();
+                break;
+            default:
+                throw new RuntimeException("no match routerStrategy for" + routerStrategy);
+        }
+        // 初始化序列化策略
+        String clientSerialize = clientConfig.getClientSerialize();
+        switch (clientSerialize) {
+            case JDK_SERIALIZE_TYPE:
+                CLIENT_SERIALIZE_FACTORY = new JdkSerializeFactory();
+                break;
+            case FAST_JSON_SERIALIZE_TYPE:
+                CLIENT_SERIALIZE_FACTORY = new FastJsonSerializeFactory();
+                break;
+            case HESSIAN2_SERIALIZE_TYPE:
+                CLIENT_SERIALIZE_FACTORY = new HessianSerializeFactory();
+                break;
+            case KRYO_SERIALIZE_TYPE:
+                CLIENT_SERIALIZE_FACTORY = new KryoSerializeFactory();
+                break;
+            default:
+                throw new RuntimeException("no match serialize type for " + clientSerialize);
+        }
+        // 初始化过滤链 指定过滤顺序
+        // todo 此处硬编码了，后续优化为外置化配置
+        ClientFilterChain clientFilterChain = new ClientFilterChain();
+        clientFilterChain.addClientFilter(new DirectInvokeFilterImpl());
+        clientFilterChain.addClientFilter(new GroupFilterImpl());
+        clientFilterChain.addClientFilter(new ClientLogFilterImpl());
+        CLIENT_FILTER_CHAIN = clientFilterChain;
+
+    }
+
 
     /**
      * 异步发送信息任务
@@ -180,13 +242,16 @@ public class Client {
                 try {
                     // 阻塞模式，取走BlockingQueue里排在首位的对象,若BlockingQueue为空,
                     // 阻断进入等待状态直到Blocking有新的对象被加入为止
-                    RpcInvocation data = SEND_QUEUE.take();
+                    RpcInvocation rpcInvocation = SEND_QUEUE.take();
                     // 将RpcInvocation封装成RpcProtocol对象中，然后发送给服务端，这里正好对应了上文中的ServerHandler
-                    String json = JSON.toJSONString(data);
-                    RpcProtocol rpcProtocol = new RpcProtocol(json.getBytes());
-                    ChannelFuture channelFuture = ConnectionHandler.getChannelFuture(data.getTargetServiceName());
-                    //netty的通道负责发送数据给服务端
-                    channelFuture.channel().writeAndFlush(rpcProtocol);
+//                    String json = JSON.toJSONString(data);
+//                    RpcProtocol rpcProtocol = new RpcProtocol(json.getBytes());
+                    ChannelFuture channelFuture = ConnectionHandler.getChannelFuture(rpcInvocation);
+                    if (channelFuture != null) {
+                        RpcProtocol rpcProtocol = new RpcProtocol(CLIENT_SERIALIZE_FACTORY.serialize(rpcInvocation));
+                        //netty的通道负责发送数据给服务端
+                        channelFuture.channel().writeAndFlush(rpcProtocol);
+                    }
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
