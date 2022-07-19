@@ -27,6 +27,6 @@ public class CommonServerCache {
     public static ServerConfig SERVER_CONFIG;
     // 服务端过滤器链
     public static ServerFilterChain SERVER_FILTER_CHAIN;
-
-    public  static final Map<String, ServiceWrapper> PROVIDER_SERVICE_WRAPPER_MAP = new ConcurrentHashMap();
+    public static final Map<String, ServiceWrapper> PROVIDER_SERVICE_WRAPPER_MAP = new ConcurrentHashMap();
+    public static Boolean IS_STARTED = false;
 }

@@ -12,6 +12,8 @@ public class ClientConfig {
 
     private String registerAddr;
 
+    private String registerType;
+
     /**
      * 代理类型： example: jdk, javassist
      */
@@ -26,6 +28,14 @@ public class ClientConfig {
      *  户端序列化方式 example: hession2,kryo,jdk,fastjson
      */
     private String clientSerialize;
+
+    public String getRegisterType() {
+        return registerType;
+    }
+
+    public void setRegisterType(String registerType) {
+        this.registerType = registerType;
+    }
 
     public String getClientSerialize() {
         return clientSerialize;

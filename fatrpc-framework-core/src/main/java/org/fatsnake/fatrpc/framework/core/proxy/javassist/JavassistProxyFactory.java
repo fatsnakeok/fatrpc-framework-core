@@ -10,6 +10,11 @@ import org.fatsnake.fatrpc.framework.core.proxy.IProxyFactory;
  * Copyright (c) 2022, zaodao All Rights Reserved.
  */
 public class JavassistProxyFactory implements IProxyFactory {
+
+    public JavassistProxyFactory() {
+
+    }
+
     @Override
     public <T> T getProxy(RpcReferenceWrapper rpcReferenceWrapper) throws Throwable {
         return (T) ProxyGenerator.newProxyInstance(Thread.currentThread().getContextClassLoader(),
