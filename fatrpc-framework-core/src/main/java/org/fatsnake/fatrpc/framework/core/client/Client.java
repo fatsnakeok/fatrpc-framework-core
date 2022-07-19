@@ -1,6 +1,7 @@
 package org.fatsnake.fatrpc.framework.core.client;
 
 import com.alibaba.fastjson.JSON;
+import com.sun.istack.internal.Pool;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -17,6 +18,7 @@ import org.fatsnake.fatrpc.framework.core.common.config.ClientConfig;
 import org.fatsnake.fatrpc.framework.core.common.config.PropertiesBootstrap;
 import org.fatsnake.fatrpc.framework.core.common.event.IRpcListenerLoader;
 import org.fatsnake.fatrpc.framework.core.common.utils.CommonUtils;
+import org.fatsnake.fatrpc.framework.core.filter.IClientFilter;
 import org.fatsnake.fatrpc.framework.core.filter.client.ClientFilterChain;
 import org.fatsnake.fatrpc.framework.core.filter.client.ClientLogFilterImpl;
 import org.fatsnake.fatrpc.framework.core.filter.client.DirectInvokeFilterImpl;
@@ -24,11 +26,14 @@ import org.fatsnake.fatrpc.framework.core.filter.client.GroupFilterImpl;
 import org.fatsnake.fatrpc.framework.core.proxy.IProxyFactory;
 import org.fatsnake.fatrpc.framework.core.proxy.javassist.JavassistProxyFactory;
 import org.fatsnake.fatrpc.framework.core.proxy.jdk.JDKProxyFactory;
+import org.fatsnake.fatrpc.framework.core.registy.RegistryService;
 import org.fatsnake.fatrpc.framework.core.registy.URL;
 import org.fatsnake.fatrpc.framework.core.registy.zookeeper.AbstractRegister;
 import org.fatsnake.fatrpc.framework.core.registy.zookeeper.ZookeeperRegister;
+import org.fatsnake.fatrpc.framework.core.router.IRouter;
 import org.fatsnake.fatrpc.framework.core.router.RandomRouterImpl;
 import org.fatsnake.fatrpc.framework.core.router.RotateRouterImpl;
+import org.fatsnake.fatrpc.framework.core.serialize.SerializeFactory;
 import org.fatsnake.fatrpc.framework.core.serialize.fastjson.FastJsonSerializeFactory;
 import org.fatsnake.fatrpc.framework.core.serialize.hessian.HessianSerializeFactory;
 import org.fatsnake.fatrpc.framework.core.serialize.jdk.JdkSerializeFactory;
@@ -40,6 +45,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.fatsnake.fatrpc.framework.core.common.cache.CommonClientCache.*;
 import static org.fatsnake.fatrpc.framework.core.common.constans.RpcConstants.*;
@@ -63,8 +69,6 @@ public class Client {
     public static EventLoopGroup clientGroup = new NioEventLoopGroup();
 
     private ClientConfig clientConfig;
-
-    private AbstractRegister abstractRegister;
 
     private IRpcListenerLoader iRpcListenerLoader;
 
@@ -100,6 +104,7 @@ public class Client {
         this.clientConfig = PropertiesBootstrap.loadClientConfigFromLocal();
         CLIENT_CONFIG = this.clientConfig;
 
+        // 使用spi的方式加载代理类
         // spi扩展的加载部分
         this.initClientConfig();
         EXTENSION_LOADER.loadExtension(IProxyFactory.class);
@@ -116,14 +121,25 @@ public class Client {
      * @param serviceBean
      */
     public void doSubscribeService(Class serviceBean) {
-        if (abstractRegister == null) {
-            abstractRegister = new ZookeeperRegister(clientConfig.getRegisterAddr());
+        // spi方式，获取注册中心，订阅服务
+        if (ABSTRACT_REGISTER == null) {
+            try {
+                EXTENSION_LOADER.loadExtension(RegistryService.class);
+                Map<String, Class> registerMap = EXTENSION_LOADER_CLASS_CACHE.get(RegistryService.class.getName());
+                Class registerClass = registerMap.get(clientConfig.getRegisterType());
+                ABSTRACT_REGISTER = (AbstractRegister) registerClass.newInstance();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
         URL url = new URL();
         url.setApplicationName(clientConfig.getApplicationName());
         url.setServiceName(serviceBean.getName());
         url.addParameter("host", CommonUtils.getIpAddress());
-        abstractRegister.subscribe(url);
+        // 获取服务的权重信息
+        Map<String, String> result = ABSTRACT_REGISTER.getServiceWeightMap(serviceBean.getName());
+        URL_MAP.put(serviceBean.getName(), result);
+        ABSTRACT_REGISTER.subscribe(url);
     }
 
     /**
@@ -131,7 +147,7 @@ public class Client {
      */
     public void doConnectServer() {
         for (URL providerURL : SUBSCRIBE_SERVICE_LIST) {
-            List<String> providerIps = abstractRegister.getProviderIps(providerURL.getServiceName());
+            List<String> providerIps = ABSTRACT_REGISTER.getProviderIps(providerURL.getServiceName());
             for (String providerIp : providerIps) {
                 try {
                     ConnectionHandler.connect(providerURL.getServiceName(), providerIp);
@@ -140,10 +156,10 @@ public class Client {
                 }
             }
             URL url = new URL();
-            url.addParameter("servicePath",providerURL.getServiceName()+"/provider");
+            url.addParameter("servicePath", providerURL.getServiceName() + "/provider");
             url.addParameter("providerIps", JSON.toJSONString(providerIps));
             // 这个函数内部需要订阅每个Provider目录下节点的变化信息，以及Provider目录下每个节点自身的数据变动情况
-            abstractRegister.doAfterSubscribe(url);
+            ABSTRACT_REGISTER.doAfterSubscribe(url);
         }
     }
 
@@ -180,7 +196,7 @@ public class Client {
         client.doConnectServer();
         // 开启异步线程，发送函数请求，通过队列SEND_QUEUE进行通信
         client.startClient();
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 10000; i++) {
             // 被代理层invoke方法，增强功能（拦截），将请求放入队列SEND_QUEUE中
             // 异步线程asyncSendJob接收到SEND_QUEUE数据，发起netty调用；在invoke方法中3*1000时间内"死循环获取"RESP_MAP缓存中的响应数据
             // 在ClientHandler中将请求方法，将响应数据放入RESP_MAP中
@@ -192,47 +208,40 @@ public class Client {
 
     /**
      * 后续可以考虑加入spi
-     *
      */
-    private void initClientConfig() {
-        // 初始化路由策略
+    private void initClientConfig() throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
+        // spi方式，初始化路由策略
+        EXTENSION_LOADER.loadExtension(IRouter.class);
         String routerStrategy = clientConfig.getRouterStrategy();
-        switch (routerStrategy) {
-            case RANDOM_ROUTER_TYPE:
-                IROUTER = new RandomRouterImpl();
-                break;
-            case ROTATE_ROUTER_TYPE:
-                IROUTER = new RotateRouterImpl();
-                break;
-            default:
-                throw new RuntimeException("no match routerStrategy for" + routerStrategy);
+        LinkedHashMap<String, Class> iRouterMap = EXTENSION_LOADER_CLASS_CACHE.get(IRouter.class.getName());
+        Class iRouterClass = iRouterMap.get(routerStrategy);
+        if (iRouterClass == null) {
+            throw new RuntimeException("no match routerStrategy for" + routerStrategy);
         }
-        // 初始化序列化策略
-        String clientSerialize = clientConfig.getClientSerialize();
-        switch (clientSerialize) {
-            case JDK_SERIALIZE_TYPE:
-                CLIENT_SERIALIZE_FACTORY = new JdkSerializeFactory();
-                break;
-            case FAST_JSON_SERIALIZE_TYPE:
-                CLIENT_SERIALIZE_FACTORY = new FastJsonSerializeFactory();
-                break;
-            case HESSIAN2_SERIALIZE_TYPE:
-                CLIENT_SERIALIZE_FACTORY = new HessianSerializeFactory();
-                break;
-            case KRYO_SERIALIZE_TYPE:
-                CLIENT_SERIALIZE_FACTORY = new KryoSerializeFactory();
-                break;
-            default:
-                throw new RuntimeException("no match serialize type for " + clientSerialize);
-        }
-        // 初始化过滤链 指定过滤顺序
-        // todo 此处硬编码了，后续优化为外置化配置
-        ClientFilterChain clientFilterChain = new ClientFilterChain();
-        clientFilterChain.addClientFilter(new DirectInvokeFilterImpl());
-        clientFilterChain.addClientFilter(new GroupFilterImpl());
-        clientFilterChain.addClientFilter(new ClientLogFilterImpl());
-        CLIENT_FILTER_CHAIN = clientFilterChain;
+        IROUTER = (IRouter) iRouterClass.newInstance();
 
+        // spi方式，初始化序列化策略
+        EXTENSION_LOADER.loadExtension(SerializeFactory.class);
+        String clientSerialize = clientConfig.getClientSerialize();
+        LinkedHashMap<String, Class> serializeMap = EXTENSION_LOADER_CLASS_CACHE.get(SerializeFactory.class.getName());
+        Class serializeFactoryClass = serializeMap.get(clientSerialize);
+        if (serializeFactoryClass == null) {
+            throw new RuntimeException("no match serialize type for " + clientSerialize);
+        }
+        CLIENT_SERIALIZE_FACTORY = (SerializeFactory) serializeFactoryClass.newInstance();
+
+        // spi方式，初始化过滤链 指定过滤顺序
+        EXTENSION_LOADER.loadExtension(IClientFilter.class);
+        ClientFilterChain clientFilterChain = new ClientFilterChain();
+        LinkedHashMap<String, Class> iClientMap = EXTENSION_LOADER_CLASS_CACHE.get(IClientFilter.class.getName());
+        for (String impClassName : iClientMap.keySet()) {
+            Class iClientFilterClass = iClientMap.get(impClassName);
+            if (iClientFilterClass == null) {
+                throw new RuntimeException("no match iClientFilter for " + iClientFilterClass);
+            }
+            clientFilterChain.addClientFilter((IClientFilter) iClientFilterClass.newInstance());
+        }
+        CLIENT_FILTER_CHAIN = clientFilterChain;
     }
 
 

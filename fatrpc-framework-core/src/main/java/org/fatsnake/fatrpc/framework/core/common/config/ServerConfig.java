@@ -12,9 +12,19 @@ public class ServerConfig {
 
     private String registerAddr;
 
+    private String registerType;
+
     private String applicationName;
 
     private String serverSerialize;
+
+    public String getRegisterType() {
+        return registerType;
+    }
+
+    public void setRegisterType(String registerType) {
+        this.registerType = registerType;
+    }
 
     /**
      * 服务端序列化方式 example: hession2,kryo,jdk,fastjson

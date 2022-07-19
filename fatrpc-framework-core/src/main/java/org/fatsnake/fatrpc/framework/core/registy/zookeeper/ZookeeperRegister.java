@@ -8,12 +8,14 @@ import org.fatsnake.fatrpc.framework.core.common.event.IRpcListenerLoader;
 import org.fatsnake.fatrpc.framework.core.common.event.IRpcNodeChangeEvent;
 import org.fatsnake.fatrpc.framework.core.common.event.IRpcUpdateEvent;
 import org.fatsnake.fatrpc.framework.core.common.event.data.URLChangeWrapper;
-import org.fatsnake.fatrpc.framework.core.proxy.javassist.ProxyGenerator;
 import org.fatsnake.fatrpc.framework.core.registy.RegistryService;
 import org.fatsnake.fatrpc.framework.core.registy.URL;
 import org.fatsnake.fatrpc.framework.core.server.DataService;
+import static org.fatsnake.fatrpc.framework.core.common.cache.CommonClientCache.*;
+import static org.fatsnake.fatrpc.framework.core.common.cache.CommonServerCache.SERVER_CONFIG;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @Auther: fatsnake
@@ -44,6 +46,16 @@ public class ZookeeperRegister extends AbstractRegister implements RegistryServi
     public List<String> getProviderIps(String serviceName) {
         List<String> nodeDataList = this.zkClient.getChildrenData(ROOT + "/" + serviceName + "/provider/");
         return nodeDataList;
+    }
+
+    @Override
+    public Map<String, String> getServiceWeightMap(String serviceName) {
+        return null;
+    }
+
+    public ZookeeperRegister() {
+        String registerAddr = CLIENT_CONFIG != null ? CLIENT_CONFIG.getRegisterAddr() : SERVER_CONFIG.getRegisterAddr();
+        this.zkClient = new CuratorZookeeperClient(registerAddr);
     }
 
     public ZookeeperRegister(String address) {

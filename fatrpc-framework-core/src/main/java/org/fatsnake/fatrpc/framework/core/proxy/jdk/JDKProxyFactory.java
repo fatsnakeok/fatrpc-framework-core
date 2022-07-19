@@ -12,6 +12,12 @@ import java.lang.reflect.Proxy;
  * Copyright (c) 2022, zaodao All Rights Reserved.
  */
 public class JDKProxyFactory implements IProxyFactory {
+
+
+    public  JDKProxyFactory() {
+
+    }
+
     @Override
     public <T> T getProxy(RpcReferenceWrapper rpcReferenceWrapper) throws Throwable {
         return (T) Proxy.newProxyInstance(rpcReferenceWrapper.getAimClass().getClassLoader(), new Class[]{rpcReferenceWrapper.getAimClass()},

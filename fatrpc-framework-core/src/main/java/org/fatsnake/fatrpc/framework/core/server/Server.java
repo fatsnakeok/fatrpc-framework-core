@@ -12,18 +12,28 @@ import org.fatsnake.fatrpc.framework.core.common.RpcEncoder;
 import org.fatsnake.fatrpc.framework.core.common.config.PropertiesBootstrap;
 import org.fatsnake.fatrpc.framework.core.common.config.ServerConfig;
 import org.fatsnake.fatrpc.framework.core.common.utils.CommonUtils;
+import org.fatsnake.fatrpc.framework.core.filter.IServerFilter;
 import org.fatsnake.fatrpc.framework.core.filter.server.ServerFilterChain;
 import org.fatsnake.fatrpc.framework.core.filter.server.ServerLogFilterImpl;
 import org.fatsnake.fatrpc.framework.core.filter.server.ServerTokenFilterImpl;
 import org.fatsnake.fatrpc.framework.core.registy.RegistryService;
 import org.fatsnake.fatrpc.framework.core.registy.URL;
+import org.fatsnake.fatrpc.framework.core.registy.zookeeper.AbstractRegister;
 import org.fatsnake.fatrpc.framework.core.registy.zookeeper.ZookeeperRegister;
+import org.fatsnake.fatrpc.framework.core.serialize.SerializeFactory;
 import org.fatsnake.fatrpc.framework.core.serialize.fastjson.FastJsonSerializeFactory;
 import org.fatsnake.fatrpc.framework.core.serialize.hessian.HessianSerializeFactory;
 import org.fatsnake.fatrpc.framework.core.serialize.jdk.JdkSerializeFactory;
 import org.fatsnake.fatrpc.framework.core.serialize.kryo.KryoSerializeFactory;
+
+import java.io.IOException;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+import static org.fatsnake.fatrpc.framework.core.common.cache.CommonClientCache.EXTENSION_LOADER;
 import static org.fatsnake.fatrpc.framework.core.common.cache.CommonServerCache.*;
 import static org.fatsnake.fatrpc.framework.core.common.constans.RpcConstants.*;
+import static org.fatsnake.fatrpc.framework.core.spi.ExtensionLoader.EXTENSION_LOADER_CLASS_CACHE;
 
 /**
  * @Auther: fatsnake
@@ -77,34 +87,33 @@ public class Server {
     }
 
 
-    public void initServerConfig() {
+    public void initServerConfig() throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
         // 这个对象主要是负责将properties的配置转换成本地的一个Map结构进行管理。
         ServerConfig serverConfig = PropertiesBootstrap.loadServerConfigFromLocal();
         this.setServerConfig(serverConfig);
-        // 初始化序列化策略
-        String serverSerialize = serverConfig.getServerSerialize();
-        switch (serverSerialize) {
-            case JDK_SERIALIZE_TYPE:
-                SERVER_SERIALIZE_FACTORY = new JdkSerializeFactory();
-                break;
-            case FAST_JSON_SERIALIZE_TYPE:
-                SERVER_SERIALIZE_FACTORY = new FastJsonSerializeFactory();
-                break;
-            case HESSIAN2_SERIALIZE_TYPE:
-                SERVER_SERIALIZE_FACTORY = new HessianSerializeFactory();
-                break;
-            case KRYO_SERIALIZE_TYPE:
-                SERVER_SERIALIZE_FACTORY = new KryoSerializeFactory();
-                break;
-            default:
-                throw new RuntimeException("no match serialize type for" + serverSerialize);
-        }
-        System.out.println("serverSerialize is "+serverSerialize);
         SERVER_CONFIG = serverConfig;
-        // 初始化服务端调用链 ，确定顺序
+        // spi方式：初始化序列化策略
+        String serverSerialize = serverConfig.getServerSerialize();
+        EXTENSION_LOADER.loadExtension(SerializeFactory.class);
+        LinkedHashMap<String, Class> serializeFactoryClassMap = EXTENSION_LOADER_CLASS_CACHE.get(SerializeFactory.class.getName());
+        Class serializeFactoryClass =  serializeFactoryClassMap.get(serverSerialize);
+        if (serializeFactoryClass == null) {
+            throw new RuntimeException("no match serialize type for " + serverSerialize);
+        }
+        SERVER_SERIALIZE_FACTORY = (SerializeFactory) serializeFactoryClass.newInstance();
+        System.out.println("serverSerialize is "+serverSerialize);
+
+        // spi方式：初始化服务端调用链 ，确定顺序
+        EXTENSION_LOADER.loadExtension(IServerFilter.class);
+        LinkedHashMap<String, Class> iServerFilterClassMap = EXTENSION_LOADER_CLASS_CACHE.get(IServerFilter.class.getName());
         ServerFilterChain serverFilterChain = new ServerFilterChain();
-        serverFilterChain.addServerFilter(new ServerLogFilterImpl());
-        serverFilterChain.addServerFilter(new ServerTokenFilterImpl());
+        for (String iServerFilterKey : iServerFilterClassMap.keySet()) {
+            Class iServerFilterClass = iServerFilterClassMap.get(iServerFilterKey);
+            if (iServerFilterClass == null) {
+                throw new RuntimeException("no match iServerFilter type for " + iServerFilterKey);
+            }
+            serverFilterChain.addServerFilter((IServerFilter) iServerFilterClass.newInstance());
+        }
         SERVER_FILTER_CHAIN = serverFilterChain;
 
     }
@@ -113,28 +122,41 @@ public class Server {
     /**
      * 暴露服务信息
      *
-     * @param serviceBean
+     * @param serviceWrapper
      */
-    public void exportService(Object serviceBean) {
-        if (serviceBean.getClass().getInterfaces().length == 0) {
+    public void exportService(ServiceWrapper serviceWrapper) {
+        if (serviceWrapper.getClass().getInterfaces().length == 0) {
             throw new RuntimeException("service must had interfaces!");
         }
-        Class[] classes = serviceBean.getClass().getInterfaces();
+        Class[] classes = serviceWrapper.getClass().getInterfaces();
         if (classes.length > 1) {
             throw new RuntimeException("service must only had one interfaces!");
         }
         if (REGISTRY_SERVICE == null) {
-            REGISTRY_SERVICE = new ZookeeperRegister(serverConfig.getRegisterAddr());
+            try {
+                // spi方式
+                EXTENSION_LOADER.loadExtension(RegistryService.class);
+                Map<String, Class> registryClassMap = EXTENSION_LOADER_CLASS_CACHE.get(RegistryService.class.getName());
+                Class registryClass = registryClassMap.get(serverConfig.getRegisterType());
+                REGISTRY_SERVICE = (AbstractRegister) registryClass.newInstance();
+            } catch (Exception e) {
+                throw new RuntimeException("registryServiceType unKnow,error is ", e);
+            }
         }
         // 默认选择该对象的第一个实现接口
         Class interfaceClass = classes[0];
-        PROVIDER_CLASS_MAP.put(interfaceClass.getName(), serviceBean);
+        PROVIDER_CLASS_MAP.put(interfaceClass.getName(), serviceWrapper);
         URL url = new URL();
         url.setServiceName(interfaceClass.getName());
         url.setApplicationName(serverConfig.getApplicationName());
         url.addParameter("host", CommonUtils.getIpAddress());
         url.addParameter("port", String.valueOf(serverConfig.getServerPort()));
+        url.addParameter("group", String.valueOf(serviceWrapper.getGroup()));
+        url.addParameter("limit", String.valueOf(serviceWrapper.getLimit()));
         PROVIDER_URL_SET.add(url);
+        if (CommonUtils.isNotEmpty(serviceWrapper.getServiceToken())) {
+            PROVIDER_SERVICE_WRAPPER_MAP.put(interfaceClass.getName(), serviceWrapper);
+        }
     }
 
 
