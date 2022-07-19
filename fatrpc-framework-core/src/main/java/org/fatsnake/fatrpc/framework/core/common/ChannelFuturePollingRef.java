@@ -24,8 +24,8 @@ public class ChannelFuturePollingRef {
      * @param serviceName
      * @return
      */
-    public ChannelFutureWrapper getChannelFutureWrapper(String serviceName) {
-        ChannelFutureWrapper[] arr = SERVICE_ROUTER_MAP.get(serviceName);
+    public ChannelFutureWrapper getChannelFutureWrapper(ChannelFutureWrapper[] arr) {
+//        ChannelFutureWrapper[] arr = SERVICE_ROUTER_MAP.get(serviceName);
         long i = referenceTimes.getAndIncrement(); // 原子递增一个
         int index = (int) (i % arr.length);
         return arr[index];

@@ -1,9 +1,8 @@
 package org.fatsnake.fatrpc.framework.core.server;
 
-import org.fatsnake.fatrpc.framework.interfaces.IDataService;
+import org.fatsnake.fatrpc.framework.interfaces.DataService;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -12,7 +11,7 @@ import java.util.List;
  * @Date:2022/7/3 3:33 下午
  * Copyright (c) 2022, zaodao All Rights Reserved.
  */
-public class DataService  implements IDataService {
+public class DataServiceImpl implements DataService {
     @Override
     public String sendData(String body) {
         System.out.println("已收到的参数长度：" + body.length());

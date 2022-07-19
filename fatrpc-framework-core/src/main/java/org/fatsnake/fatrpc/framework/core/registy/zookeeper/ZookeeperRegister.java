@@ -10,7 +10,7 @@ import org.fatsnake.fatrpc.framework.core.common.event.IRpcUpdateEvent;
 import org.fatsnake.fatrpc.framework.core.common.event.data.URLChangeWrapper;
 import org.fatsnake.fatrpc.framework.core.registy.RegistryService;
 import org.fatsnake.fatrpc.framework.core.registy.URL;
-import org.fatsnake.fatrpc.framework.core.server.DataService;
+import org.fatsnake.fatrpc.framework.core.server.DataServiceImpl;
 import static org.fatsnake.fatrpc.framework.core.common.cache.CommonClientCache.*;
 import static org.fatsnake.fatrpc.framework.core.common.cache.CommonServerCache.SERVER_CONFIG;
 
@@ -179,7 +179,7 @@ public class ZookeeperRegister extends AbstractRegister implements RegistryServi
 
     public static void main(String[] args) throws InterruptedException {
         ZookeeperRegister zookeeperRegister = new ZookeeperRegister("localhost:2181");
-        List<String> urls = zookeeperRegister.getProviderIps(DataService.class.getName());
+        List<String> urls = zookeeperRegister.getProviderIps(DataServiceImpl.class.getName());
         System.out.println(urls);
         Thread.sleep(2000000);
     }

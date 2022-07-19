@@ -8,7 +8,7 @@ import java.util.List;
  * @Date:2022/7/3 3:11 下午
  * Copyright (c) 2022, zaodao All Rights Reserved.
  */
-public interface IDataService {
+public interface DataService {
 
     /**
      * 发送数据

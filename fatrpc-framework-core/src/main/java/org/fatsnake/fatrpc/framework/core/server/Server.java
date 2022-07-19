@@ -11,20 +11,14 @@ import org.fatsnake.fatrpc.framework.core.common.RpcDecoder;
 import org.fatsnake.fatrpc.framework.core.common.RpcEncoder;
 import org.fatsnake.fatrpc.framework.core.common.config.PropertiesBootstrap;
 import org.fatsnake.fatrpc.framework.core.common.config.ServerConfig;
+import org.fatsnake.fatrpc.framework.core.common.event.IRpcListenerLoader;
 import org.fatsnake.fatrpc.framework.core.common.utils.CommonUtils;
 import org.fatsnake.fatrpc.framework.core.filter.IServerFilter;
 import org.fatsnake.fatrpc.framework.core.filter.server.ServerFilterChain;
-import org.fatsnake.fatrpc.framework.core.filter.server.ServerLogFilterImpl;
-import org.fatsnake.fatrpc.framework.core.filter.server.ServerTokenFilterImpl;
 import org.fatsnake.fatrpc.framework.core.registy.RegistryService;
 import org.fatsnake.fatrpc.framework.core.registy.URL;
 import org.fatsnake.fatrpc.framework.core.registy.zookeeper.AbstractRegister;
-import org.fatsnake.fatrpc.framework.core.registy.zookeeper.ZookeeperRegister;
 import org.fatsnake.fatrpc.framework.core.serialize.SerializeFactory;
-import org.fatsnake.fatrpc.framework.core.serialize.fastjson.FastJsonSerializeFactory;
-import org.fatsnake.fatrpc.framework.core.serialize.hessian.HessianSerializeFactory;
-import org.fatsnake.fatrpc.framework.core.serialize.jdk.JdkSerializeFactory;
-import org.fatsnake.fatrpc.framework.core.serialize.kryo.KryoSerializeFactory;
 
 import java.io.IOException;
 import java.util.LinkedHashMap;
@@ -32,7 +26,6 @@ import java.util.Map;
 
 import static org.fatsnake.fatrpc.framework.core.common.cache.CommonClientCache.EXTENSION_LOADER;
 import static org.fatsnake.fatrpc.framework.core.common.cache.CommonServerCache.*;
-import static org.fatsnake.fatrpc.framework.core.common.constans.RpcConstants.*;
 import static org.fatsnake.fatrpc.framework.core.spi.ExtensionLoader.EXTENSION_LOADER_CLASS_CACHE;
 
 /**
@@ -49,7 +42,7 @@ public class Server {
 
     private ServerConfig serverConfig;
 
-    private RegistryService registryService;
+    private static IRpcListenerLoader iRpcListenerLoader;
 
 
     public ServerConfig getServerConfig() {
@@ -193,19 +186,20 @@ public class Server {
         PROVIDER_CLASS_MAP.put(interfaceClass.getName(), serviceBean);
     }
 
-    public static void main(String[] args) throws InterruptedException {
-//        Server server = new Server();
-//        ServerConfig serverConfig = new ServerConfig();
-//        serverConfig.setPort(9090);
-//        server.setServerConfig(serverConfig);
-//        server.registryService(new DataService());
-//        server.startApplication();
-
-        // 服务配置改为外部化
+    public static void main(String[] args) throws InterruptedException, IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
         Server server = new Server();
         server.initServerConfig();
-        // 初始化registryService，需要注册的服务信息封装URL对象，添加到PROVIDER_CLASS_MAP中，等待启动时注册到注册中心
-        server.exportService(new DataService());
+        iRpcListenerLoader = new IRpcListenerLoader();
+        iRpcListenerLoader.init();
+        ServiceWrapper dataServiceServiceWrapper = new ServiceWrapper(new DataServiceImpl(), "dev");
+        dataServiceServiceWrapper.setServiceToken("token-a");
+        dataServiceServiceWrapper.setLimit(2);
+        ServiceWrapper userServiceServiceWrapper = new ServiceWrapper(new UserServiceImpl(), "dev");
+        userServiceServiceWrapper.setServiceToken("token-b");
+        userServiceServiceWrapper.setLimit(2);
+        server.exportService(dataServiceServiceWrapper);
+        server.exportService(userServiceServiceWrapper);
+        ApplicationShutdownHook.registryShutdownHook();
         server.startApplication();
 
     }
