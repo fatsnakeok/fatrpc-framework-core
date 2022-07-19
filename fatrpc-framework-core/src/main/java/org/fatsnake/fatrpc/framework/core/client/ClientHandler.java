@@ -24,6 +24,10 @@ public class  ClientHandler extends ChannelInboundHandlerAdapter {
         // 这里是传输参数是更为详细的RpcInvocation对象字节数组
         String json = new String(reqContent,0,reqContent.length);
         RpcInvocation rpcInvocation = JSON.parseObject(json,RpcInvocation.class);
+
+
+
+
         // 通过之前发送的uuid来注入匹配的响应数值
         if(!RESP_MAP.containsKey(rpcInvocation.getUuid())){
             throw new IllegalArgumentException("server response is error!");

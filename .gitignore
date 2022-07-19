@@ -22,3 +22,9 @@
 *.iml
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
+/fatrpc-framework-consumer/target/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.lst
+/fatrpc-framework-provider/target/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.lst
+/fatrpc-framework-consumer/target/classes/META-INF/fatrpc.properties
+/fatrpc-framework-provider/target/classes/fatrpc.properties
+/fatrpc-framework-consumer/target/maven-status/maven-compiler-plugin/compile/default-compile/inputFiles.lst
+/fatrpc-framework-provider/target/maven-status/maven-compiler-plugin/compile/default-compile/inputFiles.lst
