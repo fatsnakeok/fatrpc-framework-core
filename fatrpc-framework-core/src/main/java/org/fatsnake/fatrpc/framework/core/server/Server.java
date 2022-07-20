@@ -55,7 +55,7 @@ public class Server {
 
     public void startApplication() throws InterruptedException {
         bossGroup = new NioEventLoopGroup();
-        workerGroup = new NioEventLoopGroup();
+        workerGroup = new NioEventLoopGroup(3);
         ServerBootstrap bootstrap = new ServerBootstrap();
         bootstrap.group(bossGroup, workerGroup);
         bootstrap.channel(NioSctpServerChannel.class);
@@ -71,12 +71,16 @@ public class Server {
                 System.out.println("初始化provider过程");
                 ch.pipeline().addLast(new RpcEncoder());
                 ch.pipeline().addLast(new RpcDecoder());
+                // 这里面会出现堵塞的情况发生，建议将核心业务内容分配给业务线程池处理
                 ch.pipeline().addLast(new ServerHandler());
             }
         });
         // 将服务端的具体服务都暴露到注册中心，方便客户端进行调用
         this.batchExportUrl();
+        // 开始准备接手请求的任务,开心异步线程，从业务线程池中读取任务进行消费
+        SERVER_CHANNEL_DISPATCHER.startDataConsume();
         bootstrap.bind(serverConfig.getServerPort()).sync();
+        IS_STARTED = true;
     }
 
 
@@ -85,16 +89,18 @@ public class Server {
         ServerConfig serverConfig = PropertiesBootstrap.loadServerConfigFromLocal();
         this.setServerConfig(serverConfig);
         SERVER_CONFIG = serverConfig;
+        //初始化线程池和队列的配置
+        SERVER_CHANNEL_DISPATCHER.init(SERVER_CONFIG.getServerQueueSize(),SERVER_CONFIG.getServerBizThreadNums());
         // spi方式：初始化序列化策略
         String serverSerialize = serverConfig.getServerSerialize();
         EXTENSION_LOADER.loadExtension(SerializeFactory.class);
         LinkedHashMap<String, Class> serializeFactoryClassMap = EXTENSION_LOADER_CLASS_CACHE.get(SerializeFactory.class.getName());
-        Class serializeFactoryClass =  serializeFactoryClassMap.get(serverSerialize);
+        Class serializeFactoryClass = serializeFactoryClassMap.get(serverSerialize);
         if (serializeFactoryClass == null) {
             throw new RuntimeException("no match serialize type for " + serverSerialize);
         }
         SERVER_SERIALIZE_FACTORY = (SerializeFactory) serializeFactoryClass.newInstance();
-        System.out.println("serverSerialize is "+serverSerialize);
+        System.out.println("serverSerialize is " + serverSerialize);
 
         // spi方式：初始化服务端调用链 ，确定顺序
         EXTENSION_LOADER.loadExtension(IServerFilter.class);

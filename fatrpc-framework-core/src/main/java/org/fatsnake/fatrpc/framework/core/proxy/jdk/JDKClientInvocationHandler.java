@@ -10,6 +10,7 @@ import java.util.concurrent.TimeoutException;
 
 import static org.fatsnake.fatrpc.framework.core.common.cache.CommonClientCache.RESP_MAP;
 import static org.fatsnake.fatrpc.framework.core.common.cache.CommonClientCache.SEND_QUEUE;
+import static org.fatsnake.fatrpc.framework.core.common.constans.RpcConstants.DEFAULT_TIMEOUT;
 
 /**
  * @Auther: fatsnake
@@ -28,8 +29,11 @@ public class JDKClientInvocationHandler implements InvocationHandler {
 
     private RpcReferenceWrapper rpcReferenceWrapper;
 
+    private int timeOut = DEFAULT_TIMEOUT;
+
     public JDKClientInvocationHandler(RpcReferenceWrapper rpcReferenceWrapper) {
         this.rpcReferenceWrapper = rpcReferenceWrapper;
+        timeOut = Integer.valueOf(String.valueOf(rpcReferenceWrapper.getAttatchments().get("timeOut")));
     }
 
 
@@ -59,7 +63,11 @@ public class JDKClientInvocationHandler implements InvocationHandler {
         RESP_MAP.put(rpcInvocation.getUuid(), OBJECT);
         //这里就是将请求的参数放入到发送队列中
         SEND_QUEUE.add(rpcInvocation);
+        if (rpcReferenceWrapper.isAsync()) {
+            return null;
+        }
         long beginTime = -System.currentTimeMillis();
+        RESP_MAP.put(rpcInvocation.getUuid(), OBJECT);
         //客户端请求超时的一个判断依据
         while (System.currentTimeMillis() - beginTime < 3 * 1000) {
             Object object = RESP_MAP.get(rpcInvocation.getUuid());
@@ -67,6 +75,7 @@ public class JDKClientInvocationHandler implements InvocationHandler {
                 return ((RpcInvocation) object).getResponse();
             }
         }
-        throw new TimeoutException("client wait server's response timeout!");
+        // 修改错误信息
+        throw new TimeoutException("wait for response from server on client " + timeOut + "ms!");
     }
 }

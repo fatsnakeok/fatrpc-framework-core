@@ -29,6 +29,19 @@ public class ClientConfig {
      */
     private String clientSerialize;
 
+    /**
+     * 客户端数据的超时时间
+     */
+    private Integer timeOut;
+
+    public Integer getTimeOut() {
+        return timeOut;
+    }
+
+    public void setTimeOut(Integer timeOut) {
+        this.timeOut = timeOut;
+    }
+
     public String getRegisterType() {
         return registerType;
     }

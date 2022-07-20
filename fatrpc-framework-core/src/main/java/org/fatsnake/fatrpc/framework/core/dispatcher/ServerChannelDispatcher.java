@@ -44,6 +44,7 @@ public class ServerChannelDispatcher {
         public void run() {
             while (true) {
                 try {
+                    // 从队列中获取请求数据，开始处理
                     ServerChannelReadData serverChannelReadData = RPC_DATA_QUEUE.take();
                     executorService.submit(new Runnable() {
                         @Override

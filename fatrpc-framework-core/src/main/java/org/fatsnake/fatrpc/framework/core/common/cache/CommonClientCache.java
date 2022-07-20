@@ -31,7 +31,7 @@ public class CommonClientCache {
     /**
      * 队列，用于实现异步发送信息操作
      */
-    public static BlockingQueue<RpcInvocation> SEND_QUEUE = new ArrayBlockingQueue(100);
+    public static BlockingQueue<RpcInvocation> SEND_QUEUE = new ArrayBlockingQueue(5000);
     /**
      * 用于存放响应结果
      */

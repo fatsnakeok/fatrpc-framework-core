@@ -1,10 +1,12 @@
 package org.fatsnake.fatrpc.framework.core.common.cache;
 
 import org.fatsnake.fatrpc.framework.core.common.config.ServerConfig;
+import org.fatsnake.fatrpc.framework.core.dispatcher.ServerChannelDispatcher;
 import org.fatsnake.fatrpc.framework.core.filter.server.ServerFilterChain;
 import org.fatsnake.fatrpc.framework.core.registy.RegistryService;
 import org.fatsnake.fatrpc.framework.core.registy.URL;
 import org.fatsnake.fatrpc.framework.core.serialize.SerializeFactory;
+import org.fatsnake.fatrpc.framework.core.server.ServerChannelReadData;
 import org.fatsnake.fatrpc.framework.core.server.ServiceWrapper;
 
 import java.util.HashMap;
@@ -29,4 +31,5 @@ public class CommonServerCache {
     public static ServerFilterChain SERVER_FILTER_CHAIN;
     public static final Map<String, ServiceWrapper> PROVIDER_SERVICE_WRAPPER_MAP = new ConcurrentHashMap();
     public static Boolean IS_STARTED = false;
+    public static ServerChannelDispatcher SERVER_CHANNEL_DISPATCHER = new ServerChannelDispatcher();
 }

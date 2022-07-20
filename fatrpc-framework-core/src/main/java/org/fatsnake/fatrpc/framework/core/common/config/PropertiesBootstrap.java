@@ -2,6 +2,8 @@ package org.fatsnake.fatrpc.framework.core.common.config;
 
 import java.io.IOException;
 
+import static org.fatsnake.fatrpc.framework.core.common.constans.RpcConstants.DEFAULT_QUEUE_SIZE;
+import static org.fatsnake.fatrpc.framework.core.common.constans.RpcConstants.DEFAULT_THREAD_NUMS;
 import static org.fatsnake.fatrpc.framework.core.common.constans.RpcConstants.JDK_PROXY_TYPE;
 import static org.fatsnake.fatrpc.framework.core.common.constans.RpcConstants.JDK_SERIALIZE_TYPE;
 import static org.fatsnake.fatrpc.framework.core.common.constans.RpcConstants.RANDOM_ROUTER_TYPE;
@@ -22,6 +24,9 @@ public class PropertiesBootstrap {
     public static final String ROUTER_TYPE = "fatrpc.router";
     public static final String SERVER_SERIALIZE_TYPE = "fatrpc.serverSerialize";
     public static final String CLIENT_SERIALIZE_TYPE = "fatrpc.clientSerialize";
+    public static final String CLIENT_DEFAULT_TIME_OUT = "fatrpc.client.default.timeout";
+    public static final String SERVER_BIZ_THREAD_NUMS = "fatrpc.server.biz.thread.nums";
+    public static final String SERVER_QUEUE_SIZE = "fatrpc.server.queue.size";
 
     public static ServerConfig loadServerConfigFromLocal() {
         try {
@@ -35,6 +40,8 @@ public class PropertiesBootstrap {
         serverConfig.setRegisterAddr(PropertiesLoader.getPropertiesStr(REGISTER_ADDRESS));
         serverConfig.setRegisterType(PropertiesLoader.getPropertiesStr(REGISTER_TYPE));
         serverConfig.setServerSerialize(PropertiesLoader.getPropertiesStrDefault(SERVER_SERIALIZE_TYPE, JDK_SERIALIZE_TYPE));
+        serverConfig.setServerBizThreadNums(PropertiesLoader.getPropertiesIntegerDefault(SERVER_BIZ_THREAD_NUMS, DEFAULT_THREAD_NUMS));
+        serverConfig.setServerQueueSize(PropertiesLoader.getPropertiesIntegerDefault(SERVER_QUEUE_SIZE,DEFAULT_QUEUE_SIZE));
         return serverConfig;
     }
 
