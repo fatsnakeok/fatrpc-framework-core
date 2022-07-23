@@ -1,8 +1,11 @@
 package org.fatsnake.fatrpc.framework.core.client;
 
 
+import io.netty.util.ReferenceCountUtil;
 import javassist.util.proxy.ProxyFactory;
 import org.fatsnake.fatrpc.framework.core.proxy.IProxyFactory;
+
+import static org.fatsnake.fatrpc.framework.core.common.cache.CommonClientCache.CLIENT_CONFIG;
 
 /**
  * @Author fatsnake
@@ -24,6 +27,13 @@ public class RpcReference {
      * @return
      */
     public <T> T get(RpcReferenceWrapper<T>rpcReferenceWrapper) throws Throwable {
+        initGlobalRpcReferenceWrapperConfig(rpcReferenceWrapper);
         return proxyFactory.getProxy(rpcReferenceWrapper);
+    }
+
+    private <T> void initGlobalRpcReferenceWrapperConfig(RpcReferenceWrapper<T> rpcReferenceWrapper) {
+        if (rpcReferenceWrapper.getTimeOut() == null) {
+            rpcReferenceWrapper.setTimeOut(CLIENT_CONFIG.getTimeOut());
+        }
     }
 }

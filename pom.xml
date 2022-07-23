@@ -10,6 +10,8 @@
     <modules>
         <module>fatrpc-framework-core</module>
         <module>fatrpc-framework-interface</module>
+        <module>fatrpc-framework-provider</module>
+        <module>fatrpc-framework-consumer</module>
     </modules>
 
     <packaging>pom</packaging>

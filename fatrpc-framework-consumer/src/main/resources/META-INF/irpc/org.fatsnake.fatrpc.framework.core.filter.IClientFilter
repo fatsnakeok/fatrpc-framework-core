@@ -1,0 +1,1 @@
+#logFilterImpl=org.fatsnake.fatrpc.framework.consumer.spi.filter.LogFilterImpl

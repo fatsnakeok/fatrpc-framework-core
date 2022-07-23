@@ -85,4 +85,22 @@ public class PropertiesLoader {
         }
         return Integer.valueOf(propertiesMap.get(key));
     }
+
+    public static Integer getPropertiesIntegerDefault(String key, Integer defaultVal) {
+        if (properties == null) {
+            return defaultVal;
+        }
+        if (CommonUtils.isEmpty(key)) {
+            return defaultVal;
+        }
+        String value = properties.getProperty(key);
+        if (value == null) {
+            properties.put(key, String.valueOf(defaultVal));
+            return defaultVal;
+        }
+        if (!propertiesMap.containsKey(key)) {
+            propertiesMap.put(key, value);
+        }
+        return Integer.valueOf(propertiesMap.get(key));
+    }
 }

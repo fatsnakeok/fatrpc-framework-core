@@ -1,7 +1,7 @@
 package org.fatsnake.fatrpc.framework.core.proxy.javassist.demo;
 
 
-import org.fatsnake.fatrpc.framework.core.server.DataService;
+import org.fatsnake.fatrpc.framework.core.server.DataServiceImpl;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -20,7 +20,7 @@ public class DemoInvocation implements InvocationHandler {
     }
 
     public static void main(String[] args) throws Throwable {
-        Method[] methods = DataService.class.getDeclaredMethods();
+        Method[] methods = DataServiceImpl.class.getDeclaredMethods();
 //        Demo$Proxy demo$Proxy = new Demo$Proxy(new DemoInvocation());
 //        Demo$Proxy.methods = methods;
 //        demo$Proxy.getList();

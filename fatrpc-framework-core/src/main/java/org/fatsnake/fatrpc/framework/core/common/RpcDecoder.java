@@ -25,7 +25,7 @@ public class RpcDecoder extends ByteToMessageDecoder {
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf byteBuf, List<Object> out) throws Exception {
         if (byteBuf.readableBytes() >= BASE_LENGTH) {
-            // 防止收到一些体积过大的数据包
+            // 防止收到一些体积过大的数据包 目前限制在1000大小，后期版本这里是可配置模式
             if (byteBuf.readableBytes() > 1000) {
                 byteBuf.skipBytes(byteBuf.readableBytes());
             }
@@ -56,7 +56,5 @@ public class RpcDecoder extends ByteToMessageDecoder {
             RpcProtocol rpcProtocol = new RpcProtocol(data);
             out.add(rpcProtocol);
         }
-
-
     }
 }
