@@ -8,6 +8,7 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.util.UUID;
 import java.util.concurrent.TimeoutException;
+
 import static org.fatsnake.fatrpc.framework.core.common.cache.CommonClientCache.RESP_MAP;
 import static org.fatsnake.fatrpc.framework.core.common.cache.CommonClientCache.SEND_QUEUE;
 import static org.fatsnake.fatrpc.framework.core.common.constans.RpcConstants.DEFAULT_TIMEOUT;
@@ -40,18 +41,39 @@ public class JavassistInvocationHandler implements InvocationHandler {
         rpcInvocation.setTargetServiceName(rpcReferenceWrapper.getAimClass().getName());
         rpcInvocation.setAttachments(rpcReferenceWrapper.getAttatchments());
         rpcInvocation.setUuid(UUID.randomUUID().toString());
-        RESP_MAP.put(rpcInvocation.getUuid(), OBJECT);
+        // 设置重试次数初始值
+        rpcInvocation.setRetry(rpcReferenceWrapper.getRetry());
+
         //代理类内部将请求放入到发送队列中，等待发送队列发送请求
         SEND_QUEUE.add(rpcInvocation);
         if (rpcReferenceWrapper.isAsync()) {
             return null;
         }
+        // 占个位置
+        RESP_MAP.put(rpcInvocation.getUuid(), OBJECT);
         long beginTime = System.currentTimeMillis();
         //如果请求数据在指定时间内返回则返回给客户端调用方
-        while (System.currentTimeMillis() - beginTime < timeOut) {
+        while (System.currentTimeMillis() - beginTime < timeOut
+                || rpcInvocation.getRetry() > 0) {
             Object object = RESP_MAP.get(rpcInvocation.getUuid());
             if (object instanceof RpcInvocation) {
-                return ((RpcInvocation) object).getResponse();
+                RpcInvocation rpcInvocationResp = (RpcInvocation) object;
+                // 正常结果
+                if(rpcInvocationResp.getRetry() == 0 && rpcInvocationResp.getE() == null){
+                    return rpcInvocationResp.getResponse();
+                } else if (rpcInvocation.getE() != null) {
+                    if (rpcInvocation.getRetry() == 0) {
+                        return rpcInvocationResp.getResponse();
+                    }
+                    // 如果是因为超时的情况，才会触发重试规则，否则重试机制不生效
+                    if (System.currentTimeMillis() - beginTime > timeOut) {
+                        // 重新请求
+                        rpcInvocation.setResponse(null);
+                        rpcInvocation.setRetry(rpcInvocation.getRetry() - 1);
+                        RESP_MAP.put(rpcInvocation.getUuid(), OBJECT);
+                        SEND_QUEUE.add(rpcInvocation);
+                    }
+                }
             }
         }
         // 修改抛出异常的信息

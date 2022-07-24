@@ -32,4 +32,21 @@ public class DataServiceImpl implements DataService {
         arrayList.add("fat3");
         return arrayList;
     }
+
+    @Override
+    public void testError() {
+        System.out.println(1/0);
+    }
+
+    @Override
+    public String testErrorV2() {
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        System.out.println("调用测试");
+        System.out.println(1/0);
+        return "error";
+    }
 }

@@ -6,7 +6,7 @@ package org.fatsnake.fatrpc.framework.core.client;
  * @Date:2022/7/21 6:31 上午
  * Copyright (c) 2022, zaodao All Rights Reserved.
  */
-public class RpcReferenceFuture {
+public class RpcReferenceFuture<T> {
 
     private RpcReferenceWrapper rpcReferenceWrapper;
 

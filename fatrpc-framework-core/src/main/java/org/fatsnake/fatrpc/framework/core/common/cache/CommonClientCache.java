@@ -40,7 +40,7 @@ public class CommonClientCache {
     // provider名称 --> 该服务有哪些集群URL
     public static List<URL> SUBSCRIBE_SERVICE_LIST = new ArrayList<>();
     //com.sise.test.service -> <<ip:host,urlString>,<ip:host,urlString>,<ip:host,urlString>>
-    public static Map<String, Map<String,String>> URL_MAP = new ConcurrentHashMap<>();
+    public static Map<String, Map<String, String>> URL_MAP = new ConcurrentHashMap<>();
     public static Set<String> SERVER_ADDRESS = new HashSet<>();
     // 每次进行远程调用的时候都是从这里去选择服务提供者
     public static Map<String, List<ChannelFutureWrapper>> CONNECT_MAP = new ConcurrentHashMap<>();
@@ -54,6 +54,8 @@ public class CommonClientCache {
     public static SerializeFactory CLIENT_SERIALIZE_FACTORY;
     public static ClientConfig CLIENT_CONFIG; // CLient.initClientApplication
     public static ClientFilterChain CLIENT_FILTER_CHAIN;
-    public static AbstractRegister  ABSTRACT_REGISTER;
-    public static ExtensionLoader  EXTENSION_LOADER = new ExtensionLoader();
+    public static AbstractRegister ABSTRACT_REGISTER;
+    // 容错策略
+    public static Map<String, String> TOLERANT_MAP;
+    public static ExtensionLoader EXTENSION_LOADER = new ExtensionLoader();
 }

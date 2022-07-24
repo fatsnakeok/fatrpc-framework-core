@@ -1,5 +1,7 @@
 # fatrpc：一个自己实现的轻量级rpc框架
 
+此文中多图显示不能显示请添加host https://www.cnblogs.com/Alex-goforit/p/15997737.html
+
 [![OSCS Status](https://www.oscs1024.com/platform/badge/fatsnakeok/fatrpc-framework-core.svg?size=small)](https://www.oscs1024.com/project/fatsnakeok/fatrpc-framework-core?ref=badge_small)
 
 ## 项目目的

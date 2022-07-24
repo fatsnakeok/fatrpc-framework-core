@@ -1,6 +1,5 @@
 package org.fatsnake.fatrpc.framework.core.client;
 
-import com.alibaba.fastjson.JSON;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -24,6 +23,9 @@ public class  ClientHandler extends ChannelInboundHandlerAdapter {
         byte[] reqContent = rpcProtocol.getContent();
         // 这里是传输参数是更为详细的RpcInvocation对象字节数组
         RpcInvocation rpcInvocation = CLIENT_SERIALIZE_FACTORY.deserialize(reqContent, RpcInvocation.class);
+        if (rpcInvocation.getE() != null) {
+            rpcInvocation.getE().printStackTrace();
+        }
         // 如果单纯异步模式的话，响应Map集合中不存在映射值
         Object r = rpcInvocation.getAttachments().get("async");
         if (r != null && Boolean.valueOf(String.valueOf(r))) {
