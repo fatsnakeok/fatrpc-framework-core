@@ -52,6 +52,7 @@ public class JavassistInvocationHandler implements InvocationHandler {
         // 占个位置
         RESP_MAP.put(rpcInvocation.getUuid(), OBJECT);
         long beginTime = System.currentTimeMillis();
+        int retryTimes = 0;
         //如果请求数据在指定时间内返回则返回给客户端调用方
         while (System.currentTimeMillis() - beginTime < timeOut
                 || rpcInvocation.getRetry() > 0) {
@@ -67,8 +68,10 @@ public class JavassistInvocationHandler implements InvocationHandler {
                     }
                     // 如果是因为超时的情况，才会触发重试规则，否则重试机制不生效
                     if (System.currentTimeMillis() - beginTime > timeOut) {
+                        retryTimes++;
                         // 重新请求
                         rpcInvocation.setResponse(null);
+                        //每次重试之后都会将retry值扣减1
                         rpcInvocation.setRetry(rpcInvocation.getRetry() - 1);
                         RESP_MAP.put(rpcInvocation.getUuid(), OBJECT);
                         SEND_QUEUE.add(rpcInvocation);
