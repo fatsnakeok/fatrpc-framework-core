@@ -35,16 +35,8 @@ public class ServerChannelDispatcher {
     }
 
     public void add(ServerChannelReadData serverChannelReadData) {
-        throw new RuntimeException("测试异常");
-//        if(connections.get() > SERVER_CONFIG.getMaxConnections()){
-//            //todo
-//            //这里最好直接往外抛出一个异常，让外界捕获到异常后返回给客户端
-//            return;
-//        } else {
-//            connections.incrementAndGet();
-//        }
-        //这里面加入限流策略
-//        RPC_DATA_QUEUE.add(serverChannelReadData);
+        //这里面加入更细粒度的限流策略
+        RPC_DATA_QUEUE.add(serverChannelReadData);
     }
 
     class ServerJobCoreHandle implements Runnable {

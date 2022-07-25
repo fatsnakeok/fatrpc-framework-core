@@ -2,12 +2,15 @@ package org.fatsnake.fatrpc.framework.core.client;
 
 import com.alibaba.fastjson.JSON;
 import io.netty.bootstrap.Bootstrap;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.handler.codec.DelimiterBasedFrameDecoder;
 import org.fatsnake.fatrpc.framework.core.common.RpcDecoder;
 import org.fatsnake.fatrpc.framework.core.common.RpcEncoder;
 import org.fatsnake.fatrpc.framework.core.common.RpcInvocation;
@@ -34,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.fatsnake.fatrpc.framework.core.common.cache.CommonClientCache.*;
+import static org.fatsnake.fatrpc.framework.core.common.constans.RpcConstants.DEFAULT_DECODE_CHAR;
 import static org.fatsnake.fatrpc.framework.core.spi.ExtensionLoader.EXTENSION_LOADER_CLASS_CACHE;
 
 
@@ -78,6 +82,8 @@ public class Client {
         bootstrap.handler(new ChannelInitializer<SocketChannel>() {
             @Override
             protected void initChannel(SocketChannel ch) throws Exception {
+//                ByteBuf delimiter = Unpooled.copiedBuffer(DEFAULT_DECODE_CHAR.getBytes());
+//                ch.pipeline().addLast(new DelimiterBasedFrameDecoder(8192, delimiter));
                 ch.pipeline().addLast(new RpcEncoder());
                 ch.pipeline().addLast(new RpcDecoder());
                 ch.pipeline().addLast(new ClientHandler());

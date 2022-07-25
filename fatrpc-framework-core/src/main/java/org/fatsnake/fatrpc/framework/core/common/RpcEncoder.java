@@ -19,5 +19,6 @@ public class RpcEncoder extends MessageToByteEncoder<RpcProtocol> {
         out.writeShort(msg.getMagicNumber());
         out.writeInt(msg.getContentLength());
         out.writeBytes(msg.getContent());
+        //        out.writeBytes(DEFAULT_DECODE_CHAR.getBytes());
     }
 }

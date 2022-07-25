@@ -4,8 +4,11 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.ReferenceCountUtil;
+import io.netty.util.internal.StringUtil;
 import org.fatsnake.fatrpc.framework.core.common.RpcInvocation;
 import org.fatsnake.fatrpc.framework.core.common.RpcProtocol;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static org.fatsnake.fatrpc.framework.core.common.cache.CommonClientCache.CLIENT_SERIALIZE_FACTORY;
 import static org.fatsnake.fatrpc.framework.core.common.cache.CommonClientCache.RESP_MAP;
@@ -15,6 +18,8 @@ import static org.fatsnake.fatrpc.framework.core.common.cache.CommonClientCache.
  * @Date created in 8:21 下午 2021/11/24
  */
 public class  ClientHandler extends ChannelInboundHandlerAdapter {
+
+    private static Logger logger = LoggerFactory.getLogger(ClientHandler.class);
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {

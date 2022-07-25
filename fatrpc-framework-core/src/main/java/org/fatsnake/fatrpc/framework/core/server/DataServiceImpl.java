@@ -45,8 +45,8 @@ public class DataServiceImpl implements DataService {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        System.out.println("调用测试");
-        System.out.println(1/0);
-        return "error";
+        System.out.println("hahahha");
+        return "three";
+//        throw new RuntimeException("测试异常");
     }
 }

@@ -19,6 +19,8 @@ import org.fatsnake.fatrpc.framework.core.registy.RegistryService;
 import org.fatsnake.fatrpc.framework.core.registy.URL;
 import org.fatsnake.fatrpc.framework.core.registy.zookeeper.AbstractRegister;
 import org.fatsnake.fatrpc.framework.core.serialize.SerializeFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.LinkedHashMap;
@@ -35,6 +37,8 @@ import static org.fatsnake.fatrpc.framework.core.spi.ExtensionLoader.EXTENSION_L
  * Copyright (c) 2022, zaodao All Rights Reserved.
  */
 public class Server {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(Server.class);
 
     private static EventLoopGroup bossGroup = null;
 
@@ -81,6 +85,7 @@ public class Server {
         SERVER_CHANNEL_DISPATCHER.startDataConsume();
         bootstrap.bind(serverConfig.getServerPort()).sync();
         IS_STARTED = true;
+        LOGGER.info("server is started!");
     }
 
 

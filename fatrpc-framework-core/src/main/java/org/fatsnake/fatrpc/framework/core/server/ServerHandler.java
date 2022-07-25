@@ -9,6 +9,7 @@ import org.fatsnake.fatrpc.framework.core.common.RpcProtocol;
 
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.Semaphore;
 
 import static org.fatsnake.fatrpc.framework.core.common.cache.CommonServerCache.PROVIDER_CLASS_MAP;
 import static org.fatsnake.fatrpc.framework.core.common.cache.CommonServerCache.SERVER_CHANNEL_DISPATCHER;
@@ -23,6 +24,24 @@ import static org.fatsnake.fatrpc.framework.core.common.cache.CommonServerCache.
  */
 public class ServerHandler extends ChannelInboundHandlerAdapter {
 
+    private Semaphore semaphore;
+
+//    public ServerHandler(int maxConnection) {
+//        this.semaphore = new Semaphore(maxConnection);
+//    }
+
+    public Semaphore getSemaphore() {
+        return semaphore;
+    }
+
+    /**
+     * 考虑到可以动态调整最大连接数
+     *
+     * @param semaphore
+     */
+    public void setSemaphore(Semaphore semaphore) {
+        this.semaphore = semaphore;
+    }
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg)  {
