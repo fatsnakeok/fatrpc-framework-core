@@ -56,8 +56,6 @@ public class Client {
 
     private Logger logger = LoggerFactory.getLogger(Client.class);
 
-    public static EventLoopGroup clientGroup = new NioEventLoopGroup();
-
     private ClientConfig clientConfig;
 
     private IRpcListenerLoader iRpcListenerLoader;

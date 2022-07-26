@@ -37,7 +37,7 @@ public class ConsumerDemo {
         //失败重试次数
         rpcReferenceWrapper.setRetry(0);
         // 如果要使用future，这里是要切换为fasle
-        rpcReferenceWrapper.setAsync(true);
+        rpcReferenceWrapper.setAsync(false);
         DataService dataService = rpcReference.get(rpcReferenceWrapper);
         //订阅服务
         client.doSubscribeService(DataService.class);

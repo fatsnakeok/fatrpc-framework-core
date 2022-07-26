@@ -33,7 +33,7 @@ public class PropertiesBootstrap {
     public static final String SERVER_QUEUE_SIZE = "fatrpc.server.queue.size";
     public static final String MAX_CONNECTION = "fatrpc.server.macx.connection";
     public static final String SERVER_MAX_DATA_SIZE = "fatrpc.server.max.data.size";
-    public static final String CLIENT_MAX_DATA_SIZE = "fatrpcclient.max.data.size";
+    public static final String CLIENT_MAX_DATA_SIZE = "fatrpc.client.max.data.size";
 
     public static ServerConfig loadServerConfigFromLocal() {
         try {

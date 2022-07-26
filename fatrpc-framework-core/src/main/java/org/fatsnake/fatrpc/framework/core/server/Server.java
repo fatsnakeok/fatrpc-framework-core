@@ -96,7 +96,7 @@ public class Server {
         SERVER_CHANNEL_DISPATCHER.startDataConsume();
         bootstrap.bind(serverConfig.getServerPort()).sync();
         IS_STARTED = true;
-        LOGGER.info("server is started!");
+        LOGGER.info("[startApplication] server is started!");
     }
 
 
