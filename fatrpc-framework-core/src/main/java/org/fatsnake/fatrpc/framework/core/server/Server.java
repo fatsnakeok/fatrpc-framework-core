@@ -123,6 +123,7 @@ public class Server {
         LinkedHashMap<String, Class> iServerFilterClassMap = EXTENSION_LOADER_CLASS_CACHE.get(IServerFilter.class.getName());
         ServerBeforeFilterChain serverBeforeFilterChain = new ServerBeforeFilterChain();
         ServerAfterFilterChain serverAfterFilterChain = new ServerAfterFilterChain();
+        //过滤器初始化环节新增 前置过滤器和后置过滤器
         for (String iServerFilterKey : iServerFilterClassMap.keySet()) {
             Class iServerFilterClass = iServerFilterClassMap.get(iServerFilterKey);
             if (iServerFilterClass == null) {

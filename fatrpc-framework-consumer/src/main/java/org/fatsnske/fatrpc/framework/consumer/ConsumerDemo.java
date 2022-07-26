@@ -48,7 +48,7 @@ public class ConsumerDemo {
         while (true) {
             Scanner scanner = new Scanner(System.in);
             String input = scanner.nextLine();
-            for (int i = 0; i < 4; i++) {
+            for (int i = 0; i < 1; i++) {
                 String result = dataService.testErrorV2();
                 System.out.println(result);
             }
