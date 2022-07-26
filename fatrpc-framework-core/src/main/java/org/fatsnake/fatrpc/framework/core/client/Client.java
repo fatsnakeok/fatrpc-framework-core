@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.EventLoopGroup;
@@ -82,8 +83,8 @@ public class Client {
         bootstrap.handler(new ChannelInitializer<SocketChannel>() {
             @Override
             protected void initChannel(SocketChannel ch) throws Exception {
-//                ByteBuf delimiter = Unpooled.copiedBuffer(DEFAULT_DECODE_CHAR.getBytes());
-//                ch.pipeline().addLast(new DelimiterBasedFrameDecoder(8192, delimiter));
+                ByteBuf delimiter = Unpooled.copiedBuffer(DEFAULT_DECODE_CHAR.getBytes());
+                ch.pipeline().addLast(new DelimiterBasedFrameDecoder(clientConfig.getMaxServerRespDataSize(), delimiter));
                 ch.pipeline().addLast(new RpcEncoder());
                 ch.pipeline().addLast(new RpcDecoder());
                 ch.pipeline().addLast(new ClientHandler());
@@ -255,12 +256,17 @@ public class Client {
 //                    RpcProtocol rpcProtocol = new RpcProtocol(json.getBytes());
                     ChannelFuture channelFuture = ConnectionHandler.getChannelFuture(rpcInvocation);
                     if (channelFuture != null) {
-                        RpcProtocol rpcProtocol = new RpcProtocol(CLIENT_SERIALIZE_FACTORY.serialize(rpcInvocation));
-                        //netty的通道负责发送数据给服务端
-                        channelFuture.channel().writeAndFlush(rpcProtocol);
+                        Channel channel = channelFuture.channel();
+                        // 如果出现服务端中断的情况需要兼容下
+                        if (channel.isOpen()) {
+                            RpcProtocol rpcProtocol = new RpcProtocol(CLIENT_SERIALIZE_FACTORY.serialize(rpcInvocation));
+                            //netty的通道负责发送数据给服务端
+                            channel.writeAndFlush(rpcProtocol);
+                        }
                     }
                 } catch (InterruptedException e) {
                     e.printStackTrace();
+                    logger.error("[AsyncSendJob] e is ",e);
                 }
             }
         }

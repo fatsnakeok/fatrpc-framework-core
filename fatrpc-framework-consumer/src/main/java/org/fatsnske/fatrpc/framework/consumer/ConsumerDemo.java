@@ -37,7 +37,7 @@ public class ConsumerDemo {
         //失败重试次数
         rpcReferenceWrapper.setRetry(0);
         // 如果要使用future，这里是要切换为fasle
-        rpcReferenceWrapper.setAsync(false);
+        rpcReferenceWrapper.setAsync(true);
         DataService dataService = rpcReference.get(rpcReferenceWrapper);
         //订阅服务
         client.doSubscribeService(DataService.class);
@@ -45,8 +45,14 @@ public class ConsumerDemo {
         ConnectionHandler.setBootstrap(client.getBootstrap());
         client.doConnectServer();
         client.startClient();
-        String result = dataService.testErrorV2();
-        System.out.println("结束调用");
-        System.out.println(result);
+        while (true) {
+            Scanner scanner = new Scanner(System.in);
+            String input = scanner.nextLine();
+            for (int i = 0; i < 4; i++) {
+                String result = dataService.testErrorV2();
+                System.out.println(result);
+            }
+            System.out.println("结束调用");
+        }
     }
 }

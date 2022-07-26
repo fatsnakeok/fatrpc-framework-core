@@ -25,10 +25,10 @@ public class ProviderDemo {
         iRpcListenerLoader.init();
         ServiceWrapper dataServiceServiceWrapper = new ServiceWrapper(new DataServiceImpl(), "dev");
         dataServiceServiceWrapper.setServiceToken("token-a");
-        dataServiceServiceWrapper.setLimit(2);
+        dataServiceServiceWrapper.setLimit(4);
         ServiceWrapper userServiceServiceWrapper = new ServiceWrapper(new UserServiceImpl(), "dev");
         userServiceServiceWrapper.setServiceToken("token-b");
-        userServiceServiceWrapper.setLimit(2);
+        userServiceServiceWrapper.setLimit(4);
         server.exportService(dataServiceServiceWrapper);
         server.exportService(userServiceServiceWrapper);
         ApplicationShutdownHook.registryShutdownHook();

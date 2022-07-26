@@ -13,7 +13,7 @@ import java.util.List;
  * @Date:2022/7/16 10:43 上午
  * Copyright (c) 2022, zaodao All Rights Reserved.
  */
-public class ServerFilterChain {
+public class ServerAfterFilterChain {
 
     private static List<IServerFilter> iServerFilterList = new ArrayList<>();
 

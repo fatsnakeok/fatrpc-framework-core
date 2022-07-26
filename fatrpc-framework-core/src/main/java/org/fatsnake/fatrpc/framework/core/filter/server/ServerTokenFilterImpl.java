@@ -1,6 +1,7 @@
 package org.fatsnake.fatrpc.framework.core.filter.server;
 
 import org.fatsnake.fatrpc.framework.core.common.RpcInvocation;
+import org.fatsnake.fatrpc.framework.core.common.annotations.SPI;
 import org.fatsnake.fatrpc.framework.core.common.utils.CommonUtils;
 import org.fatsnake.fatrpc.framework.core.filter.IServerFilter;
 import org.fatsnake.fatrpc.framework.core.server.ServiceWrapper;
@@ -14,6 +15,7 @@ import static org.fatsnake.fatrpc.framework.core.common.cache.CommonServerCache.
  * @Date:2022/7/16 11:49 上午
  * Copyright (c) 2022, zaodao All Rights Reserved.
  */
+@SPI("before")
 public class ServerTokenFilterImpl implements IServerFilter {
     @Override
     public void doFilter(RpcInvocation rpcInvocation) {

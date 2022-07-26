@@ -43,6 +43,8 @@ public class RpcInvocation {
      */
     private Throwable e;
 
+    private String errorMsg;
+
     /**
      * 失败重试次数
      */
@@ -50,6 +52,14 @@ public class RpcInvocation {
 
 
     private boolean isDemote;
+
+    public String getErrorMsg() {
+        return errorMsg;
+    }
+
+    public void setErrorMsg(String errorMsg) {
+        this.errorMsg = errorMsg;
+    }
 
     public boolean isDemote() {
         return isDemote;

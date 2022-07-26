@@ -5,6 +5,8 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.handler.codec.MessageToByteEncoder;
 
+import static org.fatsnake.fatrpc.framework.core.common.constans.RpcConstants.DEFAULT_DECODE_CHAR;
+
 /**
  * @Auther: fatsnake
  * @Description": RPC 请求编码器，发送数据之前会通过此模块
@@ -19,6 +21,6 @@ public class RpcEncoder extends MessageToByteEncoder<RpcProtocol> {
         out.writeShort(msg.getMagicNumber());
         out.writeInt(msg.getContentLength());
         out.writeBytes(msg.getContent());
-        //        out.writeBytes(DEFAULT_DECODE_CHAR.getBytes());
+        out.writeBytes(DEFAULT_DECODE_CHAR.getBytes());
     }
 }

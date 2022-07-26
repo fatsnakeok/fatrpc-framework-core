@@ -25,36 +25,42 @@ public class RpcDecoder extends ByteToMessageDecoder {
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf byteBuf, List<Object> out) throws Exception {
         if (byteBuf.readableBytes() >= BASE_LENGTH) {
-            // 防止收到一些体积过大的数据包 目前限制在1000大小，后期版本这里是可配置模式
-            if (byteBuf.readableBytes() > 2046) {
-                byteBuf.skipBytes(byteBuf.readableBytes());
-            }
-            int beginReader;
-            while (true) {
-                beginReader = byteBuf.readerIndex();
-                byteBuf.markReaderIndex();
-                // 比对RpcProtocol的魔法数，确认是否合法请求
-                if (byteBuf.readShort() == MAGIC_NUMBER) {
-                    break;
-                } else {
-                    // 不是魔法数开头，说明是非法的客户端发来的数据包
-                    ctx.close();
-                    return;
-                }
-            }
-
-            // 对应了RpcProtocol对象的contentLength字段
-            int length = byteBuf.readInt();
-            // 说明剩余的数据包不是完整的，这里需要重置下读索引
-            if (byteBuf.readableBytes() < length) {
-                byteBuf.readerIndex(beginReader);
-                return;
-            }
-            // 其实是实际RpcProtocol对象的content字段
-            byte[] data = new byte[length];
-            byteBuf.readBytes(data);
-            RpcProtocol rpcProtocol = new RpcProtocol(data);
+            byteBuf.readShort();
+            int len = byteBuf.readInt();
+            byte[] body = new byte[len];
+            byteBuf.readBytes(body);
+            RpcProtocol rpcProtocol = new RpcProtocol(body);
             out.add(rpcProtocol);
+//            // 防止收到一些体积过大的数据包 目前限制在1000大小，后期版本这里是可配置模式
+//            if (byteBuf.readableBytes() > 2046) {
+//                byteBuf.skipBytes(byteBuf.readableBytes());
+//            }
+//            int beginReader;
+//            while (true) {
+//                beginReader = byteBuf.readerIndex();
+//                byteBuf.markReaderIndex();
+//                // 比对RpcProtocol的魔法数，确认是否合法请求
+//                if (byteBuf.readShort() == MAGIC_NUMBER) {
+//                    break;
+//                } else {
+//                    // 不是魔法数开头，说明是非法的客户端发来的数据包
+//                    ctx.close();
+//                    return;
+//                }
+//            }
+//
+//            // 对应了RpcProtocol对象的contentLength字段
+//            int length = byteBuf.readInt();
+//            // 说明剩余的数据包不是完整的，这里需要重置下读索引
+//            if (byteBuf.readableBytes() < length) {
+//                byteBuf.readerIndex(beginReader);
+//                return;
+//            }
+//            // 其实是实际RpcProtocol对象的content字段
+//            byte[] data = new byte[length];
+//            byteBuf.readBytes(data);
+//            RpcProtocol rpcProtocol = new RpcProtocol(data);
+//            out.add(rpcProtocol);
         }
     }
 }
