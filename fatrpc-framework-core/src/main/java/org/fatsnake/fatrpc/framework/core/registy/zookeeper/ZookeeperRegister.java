@@ -14,6 +14,7 @@ import org.fatsnake.fatrpc.framework.core.server.DataServiceImpl;
 import static org.fatsnake.fatrpc.framework.core.common.cache.CommonClientCache.*;
 import static org.fatsnake.fatrpc.framework.core.common.cache.CommonServerCache.SERVER_CONFIG;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -50,7 +51,13 @@ public class ZookeeperRegister extends AbstractRegister implements RegistryServi
 
     @Override
     public Map<String, String> getServiceWeightMap(String serviceName) {
-        return null;
+        List<String> nodeDataList = this.zkClient.getChildrenData(ROOT + "/" + serviceName + "/provider");
+        Map<String, String> result = new HashMap<>();
+        for (String ipAndHost : nodeDataList) {
+            String childData = this.zkClient.getNodeData(ROOT + "/" + serviceName + "/provider/" + ipAndHost);
+            result.put(ipAndHost, childData);
+        }
+        return result;
     }
 
     public ZookeeperRegister() {
