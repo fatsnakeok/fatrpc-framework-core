@@ -2,10 +2,12 @@ package org.fatsnake.fatrpc.framework.core.filter.server;
 
 import org.fatsnake.fatrpc.framework.core.common.RpcInvocation;
 import org.fatsnake.fatrpc.framework.core.common.annotations.SPI;
+import org.fatsnake.fatrpc.framework.core.common.exception.IRpcException;
 import org.fatsnake.fatrpc.framework.core.common.utils.CommonUtils;
 import org.fatsnake.fatrpc.framework.core.filter.IServerFilter;
 import org.fatsnake.fatrpc.framework.core.server.ServiceWrapper;
 
+import static org.fatsnake.fatrpc.framework.core.common.cache.CommonClientCache.RESP_MAP;
 import static org.fatsnake.fatrpc.framework.core.common.cache.CommonServerCache.PROVIDER_SERVICE_WRAPPER_MAP;
 
 /**
@@ -28,7 +30,13 @@ public class ServerTokenFilterImpl implements IServerFilter {
         }
         if (!CommonUtils.isEmpty(token) && token.equals(matchToken)) {
             return;
+        } else {
+            rpcInvocation.setRetry(0);
+            rpcInvocation.setE(new RuntimeException("service token is illegal for service " + rpcInvocation.getTargetServiceName()));
+            rpcInvocation.setResponse(null);
+            //直接交给响应线程那边处理（响应线程在代理类内部的invoke函数中，那边会取出对应的uuid的值，然后判断）
+            RESP_MAP.put(rpcInvocation.getUuid(), rpcInvocation);
+            throw new IRpcException(rpcInvocation);
         }
-        throw new RuntimeException("token is " + token + " , verify result is false!");
     }
 }

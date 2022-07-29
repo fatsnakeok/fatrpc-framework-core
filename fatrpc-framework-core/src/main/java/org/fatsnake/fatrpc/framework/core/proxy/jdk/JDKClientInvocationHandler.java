@@ -97,6 +97,8 @@ public class JDKClientInvocationHandler implements InvocationHandler {
                 }
             }
         }
+        //防止key一直存在于map集合中
+        RESP_MAP.remove(rpcInvocation.getUuid());
         // 修改错误信息
         throw new TimeoutException("wait for response from server on client " + timeOut + "ms!");
     }

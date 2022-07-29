@@ -81,6 +81,8 @@ public class JavassistInvocationHandler implements InvocationHandler {
                 }
             }
         }
+        // 应对一些请求超时的情况
+        RESP_MAP.remove(rpcInvocation.getUuid());
         // 修改抛出异常的信息
         throw new TimeoutException("Wait for response from server on client " + timeOut + "ms,Service's name is " + rpcInvocation.getTargetServiceName() + "#" + rpcInvocation.getTargetMethod());
     }

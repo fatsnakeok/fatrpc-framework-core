@@ -7,6 +7,8 @@ import io.netty.channel.ChannelFuture;
 import org.fatsnake.fatrpc.framework.core.common.ChannelFutureWrapper;
 import org.fatsnake.fatrpc.framework.core.common.RpcInvocation;
 import org.fatsnake.fatrpc.framework.core.common.utils.CommonUtils;
+import org.fatsnake.fatrpc.framework.core.registy.URL;
+import org.fatsnake.fatrpc.framework.core.registy.zookeeper.ProviderNodeInfo;
 import org.fatsnake.fatrpc.framework.core.router.Selector;
 
 import java.util.ArrayList;
@@ -64,12 +66,14 @@ public class ConnectionHandler {
         //到底这个channelFuture里面是什么
         ChannelFuture channelFuture = bootstrap.connect(ip, port).sync();
         String providerURLInfo = URL_MAP.get(providerServiceName).get(providerIp);
+        ProviderNodeInfo providerNodeInfo = URL.buildURLFromUrlStr(providerURLInfo);
         System.out.println(providerURLInfo);
         ChannelFutureWrapper channelFutureWrapper = new ChannelFutureWrapper();
         channelFutureWrapper.setChannelFuture(channelFuture);
         channelFutureWrapper.setHost(ip);
         channelFutureWrapper.setPort(port);
-        channelFutureWrapper.setWeight(Integer.valueOf(providerURLInfo.substring(providerURLInfo.lastIndexOf(";")+1)));
+        channelFutureWrapper.setWeight(providerNodeInfo.getWeight());
+        channelFutureWrapper.setGroup(providerNodeInfo.getGroup());
         SERVER_ADDRESS.add(providerIp);
         List<ChannelFutureWrapper> channelFutureWrappers = CONNECT_MAP.get(providerServiceName);
         if (CommonUtils.isEmptyList(channelFutureWrappers)) {

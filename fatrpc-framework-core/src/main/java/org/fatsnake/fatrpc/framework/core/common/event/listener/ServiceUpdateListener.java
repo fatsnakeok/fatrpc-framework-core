@@ -7,6 +7,8 @@ import org.fatsnake.fatrpc.framework.core.common.event.IRpcListener;
 import org.fatsnake.fatrpc.framework.core.common.event.IRpcUpdateEvent;
 import org.fatsnake.fatrpc.framework.core.common.event.data.URLChangeWrapper;
 import org.fatsnake.fatrpc.framework.core.common.utils.CommonUtils;
+import org.fatsnake.fatrpc.framework.core.registy.URL;
+import org.fatsnake.fatrpc.framework.core.registy.zookeeper.ProviderNodeInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,6 +62,10 @@ public class ServiceUpdateListener implements IRpcListener<IRpcUpdateEvent> {
                     Integer port = Integer.valueOf(newProviderUrl.split(":")[1]);
                     channelFutureWrapper.setPort(port);
                     channelFutureWrapper.setHost(host);
+                    String urlStr = urlChangeWrapper.getNodeDataUrl().get(newProviderUrl);
+                    ProviderNodeInfo providerNodeInfo = URL.buildURLFromUrlStr(urlStr);
+                    channelFutureWrapper.setWeight(providerNodeInfo.getWeight());
+                    channelFutureWrapper.setGroup(providerNodeInfo.getGroup());
                     ChannelFuture channelFuture = null;
                     try {
                         channelFuture = ConnectionHandler.createChannelFuture(host, port);
