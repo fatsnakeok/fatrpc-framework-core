@@ -9,6 +9,12 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
+
+    <properties>
+        <fatrpc-framework-core.version>1.0-SNAPSHOT</fatrpc-framework-core.version>
+        <fatrpc-framework-spring-starter.version>1.0-SNAPSHOT</fatrpc-framework-spring-starter.version>
+    </properties>
+
     <artifactId>fatrpc-framework-consumer</artifactId>
     <build>
         <plugins>
@@ -28,8 +34,36 @@
         <dependency>
             <groupId>org.fatsnake</groupId>
             <artifactId>fatrpc-framework-core</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>${fatrpc-framework-core.version}</version>
             <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.fatsnake</groupId>
+            <artifactId>fatrpc-framework-spring-starter</artifactId>
+            <version>${fatrpc-framework-spring-starter.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+            <version>2.1.13.RELEASE</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-log4j12</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>ch.qos.logback</groupId>
+                    <artifactId>logback-classic</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
 

@@ -57,10 +57,12 @@ public class JavassistInvocationHandler implements InvocationHandler {
         while (System.currentTimeMillis() - beginTime < timeOut
                 || rpcInvocation.getRetry() > 0) {
             Object object = RESP_MAP.get(rpcInvocation.getUuid());
-            if (object instanceof RpcInvocation) {
+            if (object != null && object instanceof RpcInvocation) {
                 RpcInvocation rpcInvocationResp = (RpcInvocation) object;
                 // 正常结果
-                if(rpcInvocationResp.getRetry() == 0 && rpcInvocationResp.getE() == null){
+                if(rpcInvocationResp.getRetry() == 0 || rpcInvocationResp.getRetry() != 0 && rpcInvocationResp.getE() == null){
+                    // 删除已使用的响应结果
+                    RESP_MAP.remove(rpcInvocation.getUuid());
                     return rpcInvocationResp.getResponse();
                 } else if (rpcInvocation.getE() != null) {
                     if (rpcInvocation.getRetry() == 0) {
