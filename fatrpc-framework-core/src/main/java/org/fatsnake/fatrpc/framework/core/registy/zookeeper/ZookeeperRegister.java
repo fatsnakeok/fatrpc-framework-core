@@ -3,10 +3,10 @@ package org.fatsnake.fatrpc.framework.core.registy.zookeeper;
 import com.alibaba.fastjson.JSON;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
-import org.fatsnake.fatrpc.framework.core.common.event.IRpcEvent;
-import org.fatsnake.fatrpc.framework.core.common.event.IRpcListenerLoader;
-import org.fatsnake.fatrpc.framework.core.common.event.IRpcNodeChangeEvent;
-import org.fatsnake.fatrpc.framework.core.common.event.IRpcUpdateEvent;
+import org.fatsnake.fatrpc.framework.core.common.event.FatRpcEvent;
+import org.fatsnake.fatrpc.framework.core.common.event.FatRpcListenerLoader;
+import org.fatsnake.fatrpc.framework.core.common.event.FatRpcNodeChangeEvent;
+import org.fatsnake.fatrpc.framework.core.common.event.FatRpcUpdateEvent;
 import org.fatsnake.fatrpc.framework.core.common.event.data.URLChangeWrapper;
 import org.fatsnake.fatrpc.framework.core.common.utils.CommonUtils;
 import org.fatsnake.fatrpc.framework.core.registy.RegistryService;
@@ -139,8 +139,8 @@ public class ZookeeperRegister extends AbstractRegister implements RegistryServi
                 String nodeData = zkClient.getNodeData(path);
                 nodeData = nodeData.replace(";", "/");
                 ProviderNodeInfo providerNodeInfo = URL.buildURLFromUrlStr(nodeData);
-                IRpcEvent iRpcEvent = new IRpcNodeChangeEvent(providerNodeInfo);
-                IRpcListenerLoader.sendEvent(iRpcEvent);
+                FatRpcEvent fatRpcEvent = new FatRpcNodeChangeEvent(providerNodeInfo);
+                FatRpcListenerLoader.sendEvent(fatRpcEvent);
                 // 订阅下一次变化
                 watchNodeDataChange(newServerNodePath);
             }
@@ -171,9 +171,9 @@ public class ZookeeperRegister extends AbstractRegister implements RegistryServi
                 urlChangeWrapper.setProviderUrl(childrenDataList);
                 urlChangeWrapper.setServiceName(servicePath.split("/")[2]);
                 // 当监听到某个节点的数据发生更新之后，会发送一个节点更新的事件，然后在事件的监听端对不同的行为做出不同的事件处理操作。
-                IRpcEvent iRpcEvent = new IRpcUpdateEvent(urlChangeWrapper);
+                FatRpcEvent fatRpcEvent = new FatRpcUpdateEvent(urlChangeWrapper);
                 //自定义的一套事件监听组件
-                IRpcListenerLoader.sendEvent(iRpcEvent);
+                FatRpcListenerLoader.sendEvent(fatRpcEvent);
                 //收到回调之后在注册一次监听，这样能保证一直都收到消息
                 // 完成本次监听同事，注册下一次监听事件保证，事件总是有效
 

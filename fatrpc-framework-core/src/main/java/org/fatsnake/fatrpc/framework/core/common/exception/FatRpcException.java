@@ -8,7 +8,7 @@ import org.fatsnake.fatrpc.framework.core.common.RpcInvocation;
  * @Date:2022/7/26 6:37 上午
  * Copyright (c) 2022, zaodao All Rights Reserved.
  */
-public class IRpcException extends RuntimeException{
+public class FatRpcException extends RuntimeException{
     private RpcInvocation rpcInvocation;
 
     public RpcInvocation getRpcInvocation() {
@@ -19,7 +19,7 @@ public class IRpcException extends RuntimeException{
         this.rpcInvocation = rpcInvocation;
     }
 
-    public IRpcException(RpcInvocation rpcInvocation) {
+    public FatRpcException(RpcInvocation rpcInvocation) {
         this.rpcInvocation = rpcInvocation;
     }
 }

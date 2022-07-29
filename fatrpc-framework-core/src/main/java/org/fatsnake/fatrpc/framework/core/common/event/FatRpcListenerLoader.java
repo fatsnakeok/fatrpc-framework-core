@@ -1,10 +1,8 @@
 package org.fatsnake.fatrpc.framework.core.common.event;
 
 
-import org.fatsnake.fatrpc.framework.core.common.RpcInvocation;
 import org.fatsnake.fatrpc.framework.core.common.event.listener.ServiceUpdateListener;
 import org.fatsnake.fatrpc.framework.core.common.utils.CommonUtils;
-import org.jboss.netty.handler.ipfilter.IpFilterRuleList;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -19,26 +17,26 @@ import java.util.concurrent.Executors;
  * @Date:2022/7/8 13:52
  * Copyright (c) 2022, zaodao All Rights Reserved.
  */
-public class IRpcListenerLoader {
+public class FatRpcListenerLoader {
 
-    private static List<IRpcListener> iRpcListenerList = new ArrayList<>();
+    private static List<FatRpcListener> fatRpcListenerList = new ArrayList<>();
 
     private static ExecutorService eventThreadPool = Executors.newFixedThreadPool(2);
 
-    public static void registerListener(IRpcListener iRpcListener) {
-        iRpcListenerList.add(iRpcListener);
+    public static void registerListener(FatRpcListener fatRpcListener) {
+        fatRpcListenerList.add(fatRpcListener);
     }
 
-    public static void sendSyncEvent(IRpcEvent iRpcEvent) {
-        System.out.println(iRpcListenerList);
-        if (CommonUtils.isEmptyList(iRpcListenerList)) {
+    public static void sendSyncEvent(FatRpcEvent fatRpcEvent) {
+        System.out.println(fatRpcListenerList);
+        if (CommonUtils.isEmptyList(fatRpcListenerList)) {
             return;
         }
-        for (IRpcListener<?> iRpcListener : iRpcListenerList) {
-            Class<?> type = getInterfaceT(iRpcListener);
-            if (type.equals(iRpcEvent.getClass())) {
+        for (FatRpcListener<?> fatRpcListener : fatRpcListenerList) {
+            Class<?> type = getInterfaceT(fatRpcListener);
+            if (type.equals(fatRpcEvent.getClass())) {
                 try {
-                    iRpcListener.callBack(iRpcEvent.getData());
+                    fatRpcListener.callBack(fatRpcEvent.getData());
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -66,19 +64,19 @@ public class IRpcListenerLoader {
         return null;
     }
 
-    public static void sendEvent(IRpcEvent iRpcEvent) {
-        if (CommonUtils.isEmptyList(iRpcListenerList)) {
+    public static void sendEvent(FatRpcEvent fatRpcEvent) {
+        if (CommonUtils.isEmptyList(fatRpcListenerList)) {
             return;
         }
 
-        for (IRpcListener<?> iRpcListener : iRpcListenerList) {
-            Class<?> type = getInterfaceT(iRpcListener);
-            if (type.equals(iRpcEvent.getClass())) {
+        for (FatRpcListener<?> fatRpcListener : fatRpcListenerList) {
+            Class<?> type = getInterfaceT(fatRpcListener);
+            if (type.equals(fatRpcEvent.getClass())) {
                 eventThreadPool.execute(new Runnable() {
                     @Override
                     public void run() {
                         try {
-                            iRpcListener.callBack(iRpcEvent.getData());
+                            fatRpcListener.callBack(fatRpcEvent.getData());
                         } catch (Exception e) {
                             e.printStackTrace();
                         }

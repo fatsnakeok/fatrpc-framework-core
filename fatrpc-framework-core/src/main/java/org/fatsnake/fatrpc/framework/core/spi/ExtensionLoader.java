@@ -18,7 +18,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class ExtensionLoader {
 
-    public static String  EXTENSION_LOADER_DIR_PREFIX = "META-INF/irpc/";
+    public static String  EXTENSION_LOADER_DIR_PREFIX = "META-INF/fatrpc/";
 
     public static Map<String, LinkedHashMap<String, Class>> EXTENSION_LOADER_CLASS_CACHE = new ConcurrentHashMap<>();
 

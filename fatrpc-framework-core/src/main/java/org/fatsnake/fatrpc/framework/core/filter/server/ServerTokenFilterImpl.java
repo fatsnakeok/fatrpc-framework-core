@@ -2,7 +2,7 @@ package org.fatsnake.fatrpc.framework.core.filter.server;
 
 import org.fatsnake.fatrpc.framework.core.common.RpcInvocation;
 import org.fatsnake.fatrpc.framework.core.common.annotations.SPI;
-import org.fatsnake.fatrpc.framework.core.common.exception.IRpcException;
+import org.fatsnake.fatrpc.framework.core.common.exception.FatRpcException;
 import org.fatsnake.fatrpc.framework.core.common.utils.CommonUtils;
 import org.fatsnake.fatrpc.framework.core.filter.IServerFilter;
 import org.fatsnake.fatrpc.framework.core.server.ServiceWrapper;
@@ -36,7 +36,7 @@ public class ServerTokenFilterImpl implements IServerFilter {
             rpcInvocation.setResponse(null);
             //直接交给响应线程那边处理（响应线程在代理类内部的invoke函数中，那边会取出对应的uuid的值，然后判断）
             RESP_MAP.put(rpcInvocation.getUuid(), rpcInvocation);
-            throw new IRpcException(rpcInvocation);
+            throw new FatRpcException(rpcInvocation);
         }
     }
 }

@@ -1,7 +1,7 @@
 package org.fatsnake.fatrpc.framework.provider;
 
 
-import org.fatsnake.fatrpc.framework.core.common.event.IRpcListenerLoader;
+import org.fatsnake.fatrpc.framework.core.common.event.FatRpcListenerLoader;
 import org.fatsnake.fatrpc.framework.core.server.ApplicationShutdownHook;
 import org.fatsnake.fatrpc.framework.core.server.DataServiceImpl;
 import org.fatsnake.fatrpc.framework.core.server.Server;
@@ -21,8 +21,8 @@ public class ProviderDemo {
     public static void main(String[] args) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException, InterruptedException {
         Server server = new Server();
         server.initServerConfig();
-        IRpcListenerLoader iRpcListenerLoader = new IRpcListenerLoader();
-        iRpcListenerLoader.init();
+        FatRpcListenerLoader fatRpcListenerLoader = new FatRpcListenerLoader();
+        fatRpcListenerLoader.init();
         ServiceWrapper dataServiceServiceWrapper = new ServiceWrapper(new DataServiceImpl(), "dev");
         dataServiceServiceWrapper.setServiceToken("token-a");
         dataServiceServiceWrapper.setLimit(4);

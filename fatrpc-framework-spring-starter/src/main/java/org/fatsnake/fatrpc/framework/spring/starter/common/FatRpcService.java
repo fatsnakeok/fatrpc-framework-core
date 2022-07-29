@@ -17,7 +17,7 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-@Component  // 这就是，为什么携带了 @ IRpcService注解的bean会被扫描到Spring容器中
+@Component  // 这就是，为什么携带了 @ FatRpcService注解的bean会被扫描到Spring容器中
 public @interface FatRpcService {
 
     int limit() default 0;

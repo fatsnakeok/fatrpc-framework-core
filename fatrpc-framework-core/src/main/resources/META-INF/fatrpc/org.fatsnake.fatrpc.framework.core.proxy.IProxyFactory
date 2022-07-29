@@ -1,2 +1,2 @@
-jdk=org.idea.irpc.framework.core.proxy.jdk.JDKProxyFactory
-javassist=org.idea.irpc.framework.core.proxy.javassist.JavassistProxyFactory
+jdk=org.fatsnake.fatrpc.framework.core.proxy.jdk.JDKProxyFactory
+javassist=org.fatsnake.fatrpc.framework.core.proxy.javassist.JavassistProxyFactory

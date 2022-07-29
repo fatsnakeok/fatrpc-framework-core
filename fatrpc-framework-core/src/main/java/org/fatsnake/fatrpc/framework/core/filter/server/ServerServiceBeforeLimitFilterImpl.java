@@ -33,9 +33,9 @@ public class ServerServiceBeforeLimitFilterImpl implements IServerFilter {
         boolean tryResult = semaphore.tryAcquire();
         if (!tryResult) {
             LOGGER.error("[ServerServiceBeforeLimitFilterImpl] {}'s max request is {},reject now", rpcInvocation.getTargetServiceName(), serverServiceSemaphoreWrapper.getMaxNums());
-            MaxServiceLimitRequestException iRpcException = new MaxServiceLimitRequestException(rpcInvocation);
-            rpcInvocation.setE(iRpcException);
-            throw iRpcException;
+            MaxServiceLimitRequestException fatRpcException = new MaxServiceLimitRequestException(rpcInvocation);
+            rpcInvocation.setE(fatRpcException);
+            throw fatRpcException;
         }
     }
 }

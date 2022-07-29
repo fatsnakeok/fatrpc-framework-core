@@ -1,3 +1,3 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-org.fatsnake.irpc.framework.spring.starter.config.FatRpcServerAutoConfiguration,\
-org.fatsnake.irpc.framework.spring.starter.config.FatRpcClientAutoConfiguration
+org.fatsnake.fatrpc.framework.spring.starter.config.FatRpcServerAutoConfiguration,\
+org.fatsnake.fatrpc.framework.spring.starter.config.FatRpcClientAutoConfiguration

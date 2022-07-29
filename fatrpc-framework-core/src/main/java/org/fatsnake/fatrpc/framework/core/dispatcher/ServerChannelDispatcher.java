@@ -2,7 +2,7 @@ package org.fatsnake.fatrpc.framework.core.dispatcher;
 
 import org.fatsnake.fatrpc.framework.core.common.RpcInvocation;
 import org.fatsnake.fatrpc.framework.core.common.RpcProtocol;
-import org.fatsnake.fatrpc.framework.core.common.exception.IRpcException;
+import org.fatsnake.fatrpc.framework.core.common.exception.FatRpcException;
 import org.fatsnake.fatrpc.framework.core.server.ServerChannelReadData;
 
 import java.lang.reflect.Method;
@@ -60,8 +60,8 @@ public class ServerChannelDispatcher {
                                     SERVER_BEFORE_FILTER_CHAIN.doFilter(rpcInvocation);
                                 } catch (Exception cause){
                                     //针对自定义异常进行捕获，并且直接返回异常信息给到客户端，然后打印结果
-                                    if (cause instanceof IRpcException) {
-                                        IRpcException rpcException = (IRpcException) cause;
+                                    if (cause instanceof FatRpcException) {
+                                        FatRpcException rpcException = (FatRpcException) cause;
                                         RpcInvocation reqParam = rpcException.getRpcInvocation();
                                         rpcInvocation.setE(rpcException);
                                         byte[] body = SERVER_SERIALIZE_FACTORY.serialize(reqParam);

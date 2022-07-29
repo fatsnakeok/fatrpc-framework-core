@@ -19,7 +19,7 @@ import java.lang.reflect.Field;
  * @Description": BeanPostProcessor: 该接口我们也叫后置处理器，作用是在Bean对象在实例化和依赖注入完毕后，
  * 在显示调用初始化方法的前后添加我们自己的逻辑。注意是Bean实例化完毕后及依赖注入完成后触发的
  * <p>
- * 这个类主要是负责在每个bean启动的时候，对bean里面凡是携带有IRpcReference注解的字段都修改其引用，使其指向对应的代理对象
+ * 这个类主要是负责在每个bean启动的时候，对bean里面凡是携带有FatRpcReference注解的字段都修改其引用，使其指向对应的代理对象
  * @Date:2022/7/28 6:29 上午
  * Copyright (c) 2022, zaodao All Rights Reserved.
  */
@@ -53,7 +53,7 @@ public class FatRpcClientAutoConfiguration implements BeanPostProcessor, Applica
                     try {
                         rpcReference = client.initClientApplication();
                     } catch (Exception e) {
-                        LOGGER.error("[IRpcClientAutoConfiguration] postProcessAfterInitialization has error ", e);
+                        LOGGER.error("[FatRpcClientAutoConfiguration] postProcessAfterInitialization has error ", e);
                         e.printStackTrace();
                     }
                     hasInitClientConfig = true;

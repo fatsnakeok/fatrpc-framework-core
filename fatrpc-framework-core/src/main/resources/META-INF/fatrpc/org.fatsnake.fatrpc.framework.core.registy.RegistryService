@@ -1,1 +1,1 @@
-zookeeper=org.idea.irpc.framework.core.registy.zookeeper.ZookeeperRegister
+zookeeper=org.fatsnake.fatrpc.framework.core.registy.zookeeper.ZookeeperRegister

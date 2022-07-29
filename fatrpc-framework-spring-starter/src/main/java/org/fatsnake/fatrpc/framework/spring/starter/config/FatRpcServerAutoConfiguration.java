@@ -1,6 +1,6 @@
 package org.fatsnake.fatrpc.framework.spring.starter.config;
 
-import org.fatsnake.fatrpc.framework.core.common.event.IRpcListenerLoader;
+import org.fatsnake.fatrpc.framework.core.common.event.FatRpcListenerLoader;
 import org.fatsnake.fatrpc.framework.core.server.ApplicationShutdownHook;
 import org.fatsnake.fatrpc.framework.core.server.Server;
 import org.fatsnake.fatrpc.framework.core.server.ServiceWrapper;
@@ -48,8 +48,8 @@ public class FatRpcServerAutoConfiguration implements InitializingBean, Applicat
         long begin = System.currentTimeMillis();
         server = new Server();
         server.initServerConfig();
-        IRpcListenerLoader iRpcListenerLoader = new IRpcListenerLoader();
-        iRpcListenerLoader.init();
+        FatRpcListenerLoader fatRpcListenerLoader = new FatRpcListenerLoader();
+        fatRpcListenerLoader.init();
         for (String beanName : beanMap.keySet()) {
             Object bean = beanMap.get(beanName);
             FatRpcService fatRpcService = bean.getClass().getAnnotation(FatRpcService.class);
@@ -57,7 +57,7 @@ public class FatRpcServerAutoConfiguration implements InitializingBean, Applicat
             dataServiceServiceWrapper.setServiceToken(fatRpcService.serviceToken());
             dataServiceServiceWrapper.setLimit(fatRpcService.limit());
             server.exportService(dataServiceServiceWrapper);
-            LOGGER.info(">>>>>>>>>>>>>>> [irpc] {} export success! >>>>>>>>>>>>>>> ",beanName);
+            LOGGER.info(">>>>>>>>>>>>>>> [fatrpc] {} export success! >>>>>>>>>>>>>>> ",beanName);
         }
         long end = System.currentTimeMillis();
         ApplicationShutdownHook.registryShutdownHook();
@@ -74,7 +74,7 @@ public class FatRpcServerAutoConfiguration implements InitializingBean, Applicat
     private void printBanner(){
         System.out.println();
         System.out.println("==============================================");
-        System.out.println("|||---------- IRpc Starting Now! ----------|||");
+        System.out.println("|||---------- fatRpc Starting Now! ----------|||");
         System.out.println("==============================================");
         System.out.println("源代码地址: https://github.com/fatsnakeok/fatrpc-framework-core");
         System.out.println("version: 1.0.0");

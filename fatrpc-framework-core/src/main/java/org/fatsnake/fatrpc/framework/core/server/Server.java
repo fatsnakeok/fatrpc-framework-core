@@ -16,7 +16,7 @@ import org.fatsnake.fatrpc.framework.core.common.ServerServiceSemaphoreWrapper;
 import org.fatsnake.fatrpc.framework.core.common.annotations.SPI;
 import org.fatsnake.fatrpc.framework.core.common.config.PropertiesBootstrap;
 import org.fatsnake.fatrpc.framework.core.common.config.ServerConfig;
-import org.fatsnake.fatrpc.framework.core.common.event.IRpcListenerLoader;
+import org.fatsnake.fatrpc.framework.core.common.event.FatRpcListenerLoader;
 import org.fatsnake.fatrpc.framework.core.common.utils.CommonUtils;
 import org.fatsnake.fatrpc.framework.core.filter.IServerFilter;
 import org.fatsnake.fatrpc.framework.core.filter.server.ServerAfterFilterChain;
@@ -53,7 +53,7 @@ public class Server {
 
     private ServerConfig serverConfig;
 
-    private static IRpcListenerLoader iRpcListenerLoader;
+    private static FatRpcListenerLoader fatRpcListenerLoader;
 
 
     public ServerConfig getServerConfig() {
@@ -222,8 +222,8 @@ public class Server {
     public static void main(String[] args) throws InterruptedException, IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
         Server server = new Server();
         server.initServerConfig();
-        iRpcListenerLoader = new IRpcListenerLoader();
-        iRpcListenerLoader.init();
+        fatRpcListenerLoader = new FatRpcListenerLoader();
+        fatRpcListenerLoader.init();
         ServiceWrapper dataServiceServiceWrapper = new ServiceWrapper(new DataServiceImpl(), "dev");
         dataServiceServiceWrapper.setServiceToken("token-a");
         dataServiceServiceWrapper.setLimit(2);

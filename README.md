@@ -232,7 +232,7 @@ Service Provider Interface，它是一种通过外界配置来加载具体代码
 - 如果扩展点加载失败，会导致调用方报错，而且这个错误很难定位到是这个原因 。
 
 #### 自定义实现的SPI
-通过当前Class的类加载器去加载META-INF/irpc/目录底下存在的资源文件，并且将它们放入一个LinkedHashMap中。
+通过当前Class的类加载器去加载META-INF/fatrpc/目录底下存在的资源文件，并且将它们放入一个LinkedHashMap中。
 不适用hashmap是为了保证放入map的顺序和配置编写的顺序保持一致。
 
 

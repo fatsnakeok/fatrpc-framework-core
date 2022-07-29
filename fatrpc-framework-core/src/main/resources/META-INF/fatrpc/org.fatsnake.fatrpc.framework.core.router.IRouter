@@ -1,2 +1,2 @@
-rotate=org.idea.irpc.framework.core.router.RotateRouterImpl
-random=org.idea.irpc.framework.core.router.RandomRouterImpl
+rotate=org.fatsnake.fatrpc.framework.core.router.RotateRouterImpl
+random=org.fatsnake.fatrpc.framework.core.router.RandomRouterImpl

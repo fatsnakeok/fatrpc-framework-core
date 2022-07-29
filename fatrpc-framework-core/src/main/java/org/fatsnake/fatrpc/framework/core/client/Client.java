@@ -18,7 +18,7 @@ import org.fatsnake.fatrpc.framework.core.common.RpcInvocation;
 import org.fatsnake.fatrpc.framework.core.common.RpcProtocol;
 import org.fatsnake.fatrpc.framework.core.common.config.ClientConfig;
 import org.fatsnake.fatrpc.framework.core.common.config.PropertiesBootstrap;
-import org.fatsnake.fatrpc.framework.core.common.event.IRpcListenerLoader;
+import org.fatsnake.fatrpc.framework.core.common.event.FatRpcListenerLoader;
 import org.fatsnake.fatrpc.framework.core.common.utils.CommonUtils;
 import org.fatsnake.fatrpc.framework.core.filter.IClientFilter;
 import org.fatsnake.fatrpc.framework.core.filter.client.ClientFilterChain;
@@ -58,7 +58,7 @@ public class Client {
 
     private ClientConfig clientConfig;
 
-    private IRpcListenerLoader iRpcListenerLoader;
+    private FatRpcListenerLoader fatRpcListenerLoader;
 
     private Bootstrap bootstrap = new Bootstrap();
 
@@ -88,8 +88,8 @@ public class Client {
                 ch.pipeline().addLast(new ClientHandler());
             }
         });
-        iRpcListenerLoader = new IRpcListenerLoader();
-        iRpcListenerLoader.init();
+        fatRpcListenerLoader = new FatRpcListenerLoader();
+        fatRpcListenerLoader.init();
         // 初始化客户端应用信息
         this.clientConfig = PropertiesBootstrap.loadClientConfigFromLocal();
         CLIENT_CONFIG = this.clientConfig;
