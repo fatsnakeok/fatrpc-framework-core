@@ -362,5 +362,47 @@ SubReactor负责相关通道的IO读写信息。
 固定窗口算法	 | 固定窗口就是定义一个“固定”的统计周期，比如 1 分钟或者 30 秒、10 秒这样。然后在每个周期统计当前周期中被接收到的请求数量，经过计数器累加后如果达到设定的阈值就触发「流量干预」。	  | 实现思路比较简单，可以有效控制指定时间周期内的流量访问规模。
 滑动窗口算法	 | 通过定义一个滑动窗口，其内部包含了许多个更加细小的固定窗口，比如 1 分钟的固定窗口切分为 60 个 1 秒的滑动窗口。然后统计的时间范围随着时间的推移同步后移。	  | 能够较为平滑地保证整体流量访问的稳定性。
 
-## 13.与spring的融合
+## 13.接入层：与spring的融合
+通过编写一套starter组件，将这些对业务侵入度较高的部分给屏蔽掉，能让开发者更加专注于自身的业务场景中。
+### 核心设计思路
+- 新建一个moudle模块命名为fatrpc-framework-spring-starter
+- 封装注解@FatRpcService和注解@FatRpcReference
+- 编写FatRpcClientAutoConfiguration （对于rpc客户端的自动装配类） 
+- 编写FatRpcServerAutoConfiguration （对于rpc服务端的自动装配类）
 
+最终使用如图：
+- 服务生产者
+```java
+@FatRpcService  // 注册服务
+public class UserServiceImpl implements UserService {
+    @Override
+    public void test() {
+        System.out.println("test");
+    }
+}
+```
+
+- 服务消费者
+```java
+@RestController
+@RequestMapping("/user")
+public class UserController {
+
+    @FatRpcReference // 引用服务
+    private UserService userService;
+
+
+    @FatRpcReference(group = "order-group", serviceToken = "order-token")
+    private OrderService orderService;
+
+
+     @GetMapping(value = "/test")
+     public void test() {userService.test();}
+
+    @GetMapping("/testMaxData")
+    public String testMaxData(int i) {
+         String result = orderService.testMaxData(i);
+         System.out.println(result.length());
+         return result;
+    }
+```
