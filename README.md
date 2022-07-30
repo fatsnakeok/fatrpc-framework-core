@@ -328,5 +328,8 @@ SubReactor负责相关通道的IO读写信息。
 
   
 #### 单个服务请求的限流
-主要核心思想是采用了Semaphore的组件进行实践。
+##### 主要核心思想
+将过滤器链拆分为前置过滤器链和后置过滤器链，采用了Semaphore的组件进行实践
 ![Semaphore.png](./images/Semaphore.png)
+
+2323233
