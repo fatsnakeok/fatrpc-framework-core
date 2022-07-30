@@ -26,7 +26,7 @@ public class ServiceWrapper {
     /**
      * 限流策略
      */
-    private Integer limit = -1;
+    private Integer limit = 10;
 
     public ServiceWrapper(Object serviceObj) {
         this.serviceObj = serviceObj;

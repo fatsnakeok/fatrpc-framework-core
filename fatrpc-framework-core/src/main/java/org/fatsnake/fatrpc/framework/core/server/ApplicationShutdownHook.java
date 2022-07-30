@@ -1,10 +1,8 @@
 package org.fatsnake.fatrpc.framework.core.server;
 
 
-import org.fatsnake.fatrpc.framework.core.common.event.IRpcDestroyEvent;
-import org.fatsnake.fatrpc.framework.core.common.event.IRpcListenerLoader;
-import org.fatsnake.fatrpc.framework.core.common.event.IRpcDestroyEvent;
-import org.fatsnake.fatrpc.framework.core.common.event.IRpcListenerLoader;
+import org.fatsnake.fatrpc.framework.core.common.event.FatRpcDestroyEvent;
+import org.fatsnake.fatrpc.framework.core.common.event.FatRpcListenerLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,7 +25,7 @@ public class ApplicationShutdownHook {
             @Override
             public void run() {
                 LOGGER.info("[registryShutdownHook] ==== ");
-                IRpcListenerLoader.sendSyncEvent(new IRpcDestroyEvent("destroy"));
+                FatRpcListenerLoader.sendSyncEvent(new FatRpcDestroyEvent("destroy"));
                 System.out.println("destory");
             }
         }));

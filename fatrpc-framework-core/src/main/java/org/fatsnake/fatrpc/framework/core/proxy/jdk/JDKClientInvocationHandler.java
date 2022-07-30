@@ -61,20 +61,44 @@ public class JDKClientInvocationHandler implements InvocationHandler {
         // invoke内部有一个while循环的逻辑，它会不断地从RESP_MAP中提取响应结果，
         //  如果对应的结果是RpcInvocation类型才会进行解析，否则会继续循环等待
         RESP_MAP.put(rpcInvocation.getUuid(), OBJECT);
+
+        // 设置重试次数初始值
+        rpcInvocation.setRetry(rpcReferenceWrapper.getRetry());
         //这里就是将请求的参数放入到发送队列中
         SEND_QUEUE.add(rpcInvocation);
         if (rpcReferenceWrapper.isAsync()) {
             return null;
         }
-        long beginTime = -System.currentTimeMillis();
         RESP_MAP.put(rpcInvocation.getUuid(), OBJECT);
+        long beginTime = -System.currentTimeMillis();
+        int retryTimes = 0;
         //客户端请求超时的一个判断依据
-        while (System.currentTimeMillis() - beginTime < 3 * 1000) {
+        while (System.currentTimeMillis() - beginTime < timeOut || rpcInvocation.getRetry() > 0) {
             Object object = RESP_MAP.get(rpcInvocation.getUuid());
             if (object instanceof RpcInvocation) {
-                return ((RpcInvocation) object).getResponse();
+                RpcInvocation rpcInvocationResp = (RpcInvocation) object;
+                // 正常结果
+                if (rpcInvocationResp.getRetry() == 0 && rpcInvocationResp.getE() == null) {
+                    return rpcInvocationResp.getResponse();
+                } else if (rpcInvocationResp.getE() != null) {
+                    // 每次重试之后都会将retry值扣减1
+                    if (rpcInvocationResp.getRetry() == 0) {
+                        return rpcInvocationResp.getResponse();
+                    }
+                    // 如果是因为超时的情况，才会触发重试的规则，否则重试机制不生效
+                    if (System.currentTimeMillis() - beginTime > timeOut) {
+                        retryTimes++;
+                        //重新请求
+                        rpcInvocation.setResponse(null);
+                        rpcInvocation.setRetry(rpcInvocationResp.getRetry() - 1);
+                        RESP_MAP.put(rpcInvocation.getUuid(), OBJECT);
+                        SEND_QUEUE.add(rpcInvocation);
+                    }
+                }
             }
         }
+        //防止key一直存在于map集合中
+        RESP_MAP.remove(rpcInvocation.getUuid());
         // 修改错误信息
         throw new TimeoutException("wait for response from server on client " + timeOut + "ms!");
     }

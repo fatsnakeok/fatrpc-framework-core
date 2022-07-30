@@ -1,7 +1,7 @@
 package org.fatsnake.fatrpc.framework.core.common.event.listener;
 
 
-import org.fatsnake.fatrpc.framework.core.common.event.IRpcDestroyEvent;
+import org.fatsnake.fatrpc.framework.core.common.event.FatRpcDestroyEvent;
 import org.fatsnake.fatrpc.framework.core.registy.URL;
 
 import static org.fatsnake.fatrpc.framework.core.common.cache.CommonServerCache.*;
@@ -12,7 +12,7 @@ import static org.fatsnake.fatrpc.framework.core.common.cache.CommonServerCache.
  * @Author fatsnake
  * @Date created in 3:18 下午 2022/1/8
  */
-public class ServiceDestroyListener implements IRpcListener<IRpcDestroyEvent> {
+public class ServiceDestroyListener implements FatRpcListener<FatRpcDestroyEvent> {
 
     @Override
     public void callBack(Object t) {

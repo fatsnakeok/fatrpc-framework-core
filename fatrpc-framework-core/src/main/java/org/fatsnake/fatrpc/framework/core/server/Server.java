@@ -1,24 +1,32 @@
 package org.fatsnake.fatrpc.framework.core.server;
 
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.sctp.nio.NioSctpServerChannel;
 import io.netty.channel.socket.SocketChannel;
+import io.netty.handler.codec.DelimiterBasedFrameDecoder;
 import org.fatsnake.fatrpc.framework.core.common.RpcDecoder;
 import org.fatsnake.fatrpc.framework.core.common.RpcEncoder;
+import org.fatsnake.fatrpc.framework.core.common.ServerServiceSemaphoreWrapper;
+import org.fatsnake.fatrpc.framework.core.common.annotations.SPI;
 import org.fatsnake.fatrpc.framework.core.common.config.PropertiesBootstrap;
 import org.fatsnake.fatrpc.framework.core.common.config.ServerConfig;
-import org.fatsnake.fatrpc.framework.core.common.event.IRpcListenerLoader;
+import org.fatsnake.fatrpc.framework.core.common.event.FatRpcListenerLoader;
 import org.fatsnake.fatrpc.framework.core.common.utils.CommonUtils;
 import org.fatsnake.fatrpc.framework.core.filter.IServerFilter;
-import org.fatsnake.fatrpc.framework.core.filter.server.ServerFilterChain;
+import org.fatsnake.fatrpc.framework.core.filter.server.ServerAfterFilterChain;
+import org.fatsnake.fatrpc.framework.core.filter.server.ServerBeforeFilterChain;
 import org.fatsnake.fatrpc.framework.core.registy.RegistryService;
 import org.fatsnake.fatrpc.framework.core.registy.URL;
 import org.fatsnake.fatrpc.framework.core.registy.zookeeper.AbstractRegister;
 import org.fatsnake.fatrpc.framework.core.serialize.SerializeFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.LinkedHashMap;
@@ -26,6 +34,7 @@ import java.util.Map;
 
 import static org.fatsnake.fatrpc.framework.core.common.cache.CommonClientCache.EXTENSION_LOADER;
 import static org.fatsnake.fatrpc.framework.core.common.cache.CommonServerCache.*;
+import static org.fatsnake.fatrpc.framework.core.common.constans.RpcConstants.DEFAULT_DECODE_CHAR;
 import static org.fatsnake.fatrpc.framework.core.spi.ExtensionLoader.EXTENSION_LOADER_CLASS_CACHE;
 
 /**
@@ -36,13 +45,15 @@ import static org.fatsnake.fatrpc.framework.core.spi.ExtensionLoader.EXTENSION_L
  */
 public class Server {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(Server.class);
+
     private static EventLoopGroup bossGroup = null;
 
     private static EventLoopGroup workerGroup = null;
 
     private ServerConfig serverConfig;
 
-    private static IRpcListenerLoader iRpcListenerLoader;
+    private static FatRpcListenerLoader fatRpcListenerLoader;
 
 
     public ServerConfig getServerConfig() {
@@ -64,11 +75,15 @@ public class Server {
         bootstrap.option(ChannelOption.SO_SNDBUF, 16 * 1024)
                 .option(ChannelOption.SO_RCVBUF, 16 * 1024)
                 .option(ChannelOption.SO_KEEPALIVE, true);
-
+        //服务端采用单一长连接的模式，这里所支持的最大连接数应该和机器本身的性能有关
+        //连接防护的handler应该绑定在Main-Reactor上
+        bootstrap.handler(new MaxConnectionLimitHandler(serverConfig.getMaxConnections()));
         bootstrap.childHandler(new ChannelInitializer<SocketChannel>() {
             @Override
             protected void initChannel(SocketChannel ch) throws Exception {
                 System.out.println("初始化provider过程");
+                ByteBuf delimiter = Unpooled.copiedBuffer(DEFAULT_DECODE_CHAR.getBytes());
+                ch.pipeline().addLast(new DelimiterBasedFrameDecoder(serverConfig.getMaxServerRequestData(), delimiter));
                 ch.pipeline().addLast(new RpcEncoder());
                 ch.pipeline().addLast(new RpcDecoder());
                 // 这里面会出现堵塞的情况发生，建议将核心业务内容分配给业务线程池处理
@@ -81,6 +96,7 @@ public class Server {
         SERVER_CHANNEL_DISPATCHER.startDataConsume();
         bootstrap.bind(serverConfig.getServerPort()).sync();
         IS_STARTED = true;
+        LOGGER.info("[startApplication] server is started!");
     }
 
 
@@ -105,15 +121,23 @@ public class Server {
         // spi方式：初始化服务端调用链 ，确定顺序
         EXTENSION_LOADER.loadExtension(IServerFilter.class);
         LinkedHashMap<String, Class> iServerFilterClassMap = EXTENSION_LOADER_CLASS_CACHE.get(IServerFilter.class.getName());
-        ServerFilterChain serverFilterChain = new ServerFilterChain();
+        ServerBeforeFilterChain serverBeforeFilterChain = new ServerBeforeFilterChain();
+        ServerAfterFilterChain serverAfterFilterChain = new ServerAfterFilterChain();
+        //过滤器初始化环节新增 前置过滤器和后置过滤器
         for (String iServerFilterKey : iServerFilterClassMap.keySet()) {
             Class iServerFilterClass = iServerFilterClassMap.get(iServerFilterKey);
             if (iServerFilterClass == null) {
                 throw new RuntimeException("no match iServerFilter type for " + iServerFilterKey);
             }
-            serverFilterChain.addServerFilter((IServerFilter) iServerFilterClass.newInstance());
+            SPI spi = (SPI) iServerFilterClass.getDeclaredAnnotation(SPI.class);
+            if (spi != null && "before".equals(spi.value())) {
+                serverBeforeFilterChain.addServerFilter((IServerFilter) iServerFilterClass.newInstance());
+            } else if(spi != null && "after".equals(spi.value())){
+                serverAfterFilterChain.addServerFilter((IServerFilter) iServerFilterClass.newInstance());
+            }
         }
-        SERVER_FILTER_CHAIN = serverFilterChain;
+        SERVER_AFTER_FILTER_CHAIN = serverAfterFilterChain;
+        SERVER_BEFORE_FILTER_CHAIN = serverBeforeFilterChain;
 
     }
 
@@ -152,6 +176,8 @@ public class Server {
         url.addParameter("port", String.valueOf(serverConfig.getServerPort()));
         url.addParameter("group", String.valueOf(serviceWrapper.getGroup()));
         url.addParameter("limit", String.valueOf(serviceWrapper.getLimit()));
+        //设置服务端的限流器
+        SERVER_SERVICE_SEMAPHORE_MAP.put(interfaceClass.getName(),new ServerServiceSemaphoreWrapper(serviceWrapper.getLimit()));
         PROVIDER_URL_SET.add(url);
         if (CommonUtils.isNotEmpty(serviceWrapper.getServiceToken())) {
             PROVIDER_SERVICE_WRAPPER_MAP.put(interfaceClass.getName(), serviceWrapper);
@@ -173,6 +199,7 @@ public class Server {
                 }
                 for (URL url : PROVIDER_URL_SET) {
                     REGISTRY_SERVICE.register(url);
+                    LOGGER.info("[Server] export service {}", url.getServiceName());
                 }
             }
         });
@@ -195,8 +222,8 @@ public class Server {
     public static void main(String[] args) throws InterruptedException, IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
         Server server = new Server();
         server.initServerConfig();
-        iRpcListenerLoader = new IRpcListenerLoader();
-        iRpcListenerLoader.init();
+        fatRpcListenerLoader = new FatRpcListenerLoader();
+        fatRpcListenerLoader.init();
         ServiceWrapper dataServiceServiceWrapper = new ServiceWrapper(new DataServiceImpl(), "dev");
         dataServiceServiceWrapper.setServiceToken("token-a");
         dataServiceServiceWrapper.setLimit(2);

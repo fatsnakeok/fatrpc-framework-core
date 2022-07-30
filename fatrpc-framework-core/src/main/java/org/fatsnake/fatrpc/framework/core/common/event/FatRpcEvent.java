@@ -6,9 +6,9 @@ package org.fatsnake.fatrpc.framework.core.common.event;
  * @Date:2022/7/8 13:50
  * Copyright (c) 2022, zaodao All Rights Reserved.
  */
-public interface IRpcEvent {
+public interface FatRpcEvent {
 
     Object getData();
 
-    IRpcEvent setData(Object data);
+    FatRpcEvent setData(Object data);
 }

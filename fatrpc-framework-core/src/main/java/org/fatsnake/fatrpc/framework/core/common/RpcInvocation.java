@@ -38,6 +38,53 @@ public class RpcInvocation {
      */
     private Object response;
 
+    /**
+     * 服务提供端抛出的异常
+     */
+    private Throwable e;
+
+    private String errorMsg;
+
+    /**
+     * 失败重试次数
+     */
+    private int retry;
+
+
+    private boolean isDemote;
+
+    public String getErrorMsg() {
+        return errorMsg;
+    }
+
+    public void setErrorMsg(String errorMsg) {
+        this.errorMsg = errorMsg;
+    }
+
+    public boolean isDemote() {
+        return isDemote;
+    }
+
+    public void setDemote(boolean demote) {
+        isDemote = demote;
+    }
+
+    public Throwable getE() {
+        return e;
+    }
+
+    public void setE(Throwable e) {
+        this.e = e;
+    }
+
+    public int getRetry() {
+        return retry;
+    }
+
+    public void setRetry(int retry) {
+        this.retry = retry;
+    }
+
     private Map<String, Object> attachments = new ConcurrentHashMap<>();
 
     public Map<String, Object> getAttachments() {

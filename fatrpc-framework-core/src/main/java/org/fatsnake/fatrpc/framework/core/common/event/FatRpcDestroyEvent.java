@@ -1,18 +1,16 @@
 package org.fatsnake.fatrpc.framework.core.common.event;
 
-import org.fatsnake.fatrpc.framework.core.common.event.IRpcEvent;
-
 /**
  * 服务销毁事件
  *
  * @Author fatsnake
  * @Date created in 3:20 下午 2022/1/8
  */
-public class IRpcDestroyEvent implements IRpcEvent {
+public class FatRpcDestroyEvent implements FatRpcEvent {
 
     private Object data;
 
-    public IRpcDestroyEvent(Object data) {
+    public FatRpcDestroyEvent(Object data) {
         this.data = data;
     }
 
@@ -22,7 +20,7 @@ public class IRpcDestroyEvent implements IRpcEvent {
     }
 
     @Override
-    public IRpcEvent setData(Object data) {
+    public FatRpcEvent setData(Object data) {
         this.data = data;
         return this;
     }

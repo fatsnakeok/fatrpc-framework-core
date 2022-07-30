@@ -20,7 +20,6 @@
         <fastjson.version>1.2.44</fastjson.version>
         <jboss-marshalling-river.version>1.4.11.Final</jboss-marshalling-river.version>
         <jboss-marshalling-serial.version>1.4.11.Final</jboss-marshalling-serial.version>
-        <slf4j-api.version>1.7.13</slf4j-api.version>
         <javassist.version>3.21.0-GA</javassist.version>
         <zookeeper.version>3.4.14</zookeeper.version>
         <zkClient.version>0.7</zkClient.version>
@@ -71,12 +70,6 @@
             <groupId>io.netty</groupId>
             <artifactId>netty-all</artifactId>
             <version>${netty.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>${slf4j-api.version}</version>
         </dependency>
         <dependency>
             <groupId>com.alibaba</groupId>

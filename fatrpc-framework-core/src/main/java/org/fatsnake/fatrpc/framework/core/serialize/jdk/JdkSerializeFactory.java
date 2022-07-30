@@ -19,6 +19,8 @@ public class JdkSerializeFactory implements SerializeFactory {
             ByteArrayOutputStream os = new ByteArrayOutputStream();
             ObjectOutputStream output = new ObjectOutputStream(os);
             output.writeObject(t);
+            //bugfix 解决readObject时候出现的eof异常
+            output.writeObject(null);
             output.flush();
             output.close();
             data = os.toByteArray();

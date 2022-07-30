@@ -1,12 +1,14 @@
 package org.fatsnake.fatrpc.framework.core.client;
 
-import com.alibaba.fastjson.JSON;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.ReferenceCountUtil;
+import io.netty.util.internal.StringUtil;
 import org.fatsnake.fatrpc.framework.core.common.RpcInvocation;
 import org.fatsnake.fatrpc.framework.core.common.RpcProtocol;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static org.fatsnake.fatrpc.framework.core.common.cache.CommonClientCache.CLIENT_SERIALIZE_FACTORY;
 import static org.fatsnake.fatrpc.framework.core.common.cache.CommonClientCache.RESP_MAP;
@@ -17,13 +19,18 @@ import static org.fatsnake.fatrpc.framework.core.common.cache.CommonClientCache.
  */
 public class  ClientHandler extends ChannelInboundHandlerAdapter {
 
+    private static Logger logger = LoggerFactory.getLogger(ClientHandler.class);
+
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+    public void channelRead(ChannelHandlerContext ctx, Object msg) {
         // 客户端和服务端之间的数据都是以RpcProtocol对象作为基本协议进行的交互
         RpcProtocol rpcProtocol = (RpcProtocol) msg;
         byte[] reqContent = rpcProtocol.getContent();
         // 这里是传输参数是更为详细的RpcInvocation对象字节数组
         RpcInvocation rpcInvocation = CLIENT_SERIALIZE_FACTORY.deserialize(reqContent, RpcInvocation.class);
+        if (rpcInvocation.getE() != null) {
+            rpcInvocation.getE().printStackTrace();
+        }
         // 如果单纯异步模式的话，响应Map集合中不存在映射值
         Object r = rpcInvocation.getAttachments().get("async");
         if (r != null && Boolean.valueOf(String.valueOf(r))) {

@@ -3,10 +3,12 @@ package org.fatsnake.fatrpc.framework.core.common.event.listener;
 import io.netty.channel.ChannelFuture;
 import org.fatsnake.fatrpc.framework.core.client.ConnectionHandler;
 import org.fatsnake.fatrpc.framework.core.common.ChannelFutureWrapper;
-import org.fatsnake.fatrpc.framework.core.common.event.IRpcListener;
-import org.fatsnake.fatrpc.framework.core.common.event.IRpcUpdateEvent;
+import org.fatsnake.fatrpc.framework.core.common.event.FatRpcListener;
+import org.fatsnake.fatrpc.framework.core.common.event.FatRpcUpdateEvent;
 import org.fatsnake.fatrpc.framework.core.common.event.data.URLChangeWrapper;
 import org.fatsnake.fatrpc.framework.core.common.utils.CommonUtils;
+import org.fatsnake.fatrpc.framework.core.registy.URL;
+import org.fatsnake.fatrpc.framework.core.registy.zookeeper.ProviderNodeInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,7 +25,7 @@ import static org.fatsnake.fatrpc.framework.core.common.cache.CommonClientCache.
  * @Date:2022/7/8 10:14 下午
  * Copyright (c) 2022, zaodao All Rights Reserved.
  */
-public class ServiceUpdateListener implements IRpcListener<IRpcUpdateEvent> {
+public class ServiceUpdateListener implements FatRpcListener<FatRpcUpdateEvent> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ServiceUpdateListener.class);
 
@@ -60,6 +62,10 @@ public class ServiceUpdateListener implements IRpcListener<IRpcUpdateEvent> {
                     Integer port = Integer.valueOf(newProviderUrl.split(":")[1]);
                     channelFutureWrapper.setPort(port);
                     channelFutureWrapper.setHost(host);
+                    String urlStr = urlChangeWrapper.getNodeDataUrl().get(newProviderUrl);
+                    ProviderNodeInfo providerNodeInfo = URL.buildURLFromUrlStr(urlStr);
+                    channelFutureWrapper.setWeight(providerNodeInfo.getWeight());
+                    channelFutureWrapper.setGroup(providerNodeInfo.getGroup());
                     ChannelFuture channelFuture = null;
                     try {
                         channelFuture = ConnectionHandler.createChannelFuture(host, port);

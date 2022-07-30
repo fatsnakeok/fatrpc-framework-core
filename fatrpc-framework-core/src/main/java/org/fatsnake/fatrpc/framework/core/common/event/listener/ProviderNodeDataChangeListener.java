@@ -1,7 +1,7 @@
 package org.fatsnake.fatrpc.framework.core.common.event.listener;
 
 import org.fatsnake.fatrpc.framework.core.common.ChannelFutureWrapper;
-import org.fatsnake.fatrpc.framework.core.common.event.IRpcNodeChangeEvent;
+import org.fatsnake.fatrpc.framework.core.common.event.FatRpcNodeChangeEvent;
 import org.fatsnake.fatrpc.framework.core.registy.URL;
 import org.fatsnake.fatrpc.framework.core.registy.zookeeper.ProviderNodeInfo;
 
@@ -16,7 +16,7 @@ import static org.fatsnake.fatrpc.framework.core.common.cache.CommonClientCache.
  * @Date:2022/7/12 11:05
  * Copyright (c) 2022, zaodao All Rights Reserved.
  */
-public class ProviderNodeDataChangeListener implements IRpcListener<IRpcNodeChangeEvent> {
+public class ProviderNodeDataChangeListener implements FatRpcListener<FatRpcNodeChangeEvent> {
     @Override
     public void callBack(Object t) {
         ProviderNodeInfo providerNodeInfo = ((ProviderNodeInfo) t);
@@ -24,6 +24,7 @@ public class ProviderNodeDataChangeListener implements IRpcListener<IRpcNodeChan
         for (ChannelFutureWrapper channelFutureWrapper : channelFutureWrapperList) {
             String address = channelFutureWrapper.getHost() + ":" + channelFutureWrapper.getPort();
             if (address.equals(providerNodeInfo.getAddress())) {
+                channelFutureWrapper.setGroup(providerNodeInfo.getGroup());
                 // 修改权重
                 channelFutureWrapper.setWeight(providerNodeInfo.getWeight());
                 URL url = new URL();

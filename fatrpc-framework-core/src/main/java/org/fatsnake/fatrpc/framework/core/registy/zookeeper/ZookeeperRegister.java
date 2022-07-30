@@ -3,17 +3,19 @@ package org.fatsnake.fatrpc.framework.core.registy.zookeeper;
 import com.alibaba.fastjson.JSON;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
-import org.fatsnake.fatrpc.framework.core.common.event.IRpcEvent;
-import org.fatsnake.fatrpc.framework.core.common.event.IRpcListenerLoader;
-import org.fatsnake.fatrpc.framework.core.common.event.IRpcNodeChangeEvent;
-import org.fatsnake.fatrpc.framework.core.common.event.IRpcUpdateEvent;
+import org.fatsnake.fatrpc.framework.core.common.event.FatRpcEvent;
+import org.fatsnake.fatrpc.framework.core.common.event.FatRpcListenerLoader;
+import org.fatsnake.fatrpc.framework.core.common.event.FatRpcNodeChangeEvent;
+import org.fatsnake.fatrpc.framework.core.common.event.FatRpcUpdateEvent;
 import org.fatsnake.fatrpc.framework.core.common.event.data.URLChangeWrapper;
+import org.fatsnake.fatrpc.framework.core.common.utils.CommonUtils;
 import org.fatsnake.fatrpc.framework.core.registy.RegistryService;
 import org.fatsnake.fatrpc.framework.core.registy.URL;
 import org.fatsnake.fatrpc.framework.core.server.DataServiceImpl;
 import static org.fatsnake.fatrpc.framework.core.common.cache.CommonClientCache.*;
 import static org.fatsnake.fatrpc.framework.core.common.cache.CommonServerCache.SERVER_CONFIG;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -50,7 +52,13 @@ public class ZookeeperRegister extends AbstractRegister implements RegistryServi
 
     @Override
     public Map<String, String> getServiceWeightMap(String serviceName) {
-        return null;
+        List<String> nodeDataList = this.zkClient.getChildrenData(ROOT + "/" + serviceName + "/provider");
+        Map<String, String> result = new HashMap<>();
+        for (String ipAndHost : nodeDataList) {
+            String childData = this.zkClient.getNodeData(ROOT + "/" + serviceName + "/provider/" + ipAndHost);
+            result.put(ipAndHost, childData);
+        }
+        return result;
     }
 
     public ZookeeperRegister() {
@@ -131,8 +139,8 @@ public class ZookeeperRegister extends AbstractRegister implements RegistryServi
                 String nodeData = zkClient.getNodeData(path);
                 nodeData = nodeData.replace(";", "/");
                 ProviderNodeInfo providerNodeInfo = URL.buildURLFromUrlStr(nodeData);
-                IRpcEvent iRpcEvent = new IRpcNodeChangeEvent(providerNodeInfo);
-                IRpcListenerLoader.sendEvent(iRpcEvent);
+                FatRpcEvent fatRpcEvent = new FatRpcNodeChangeEvent(providerNodeInfo);
+                FatRpcListenerLoader.sendEvent(fatRpcEvent);
                 // 订阅下一次变化
                 watchNodeDataChange(newServerNodePath);
             }
@@ -146,21 +154,35 @@ public class ZookeeperRegister extends AbstractRegister implements RegistryServi
             @Override
             public void process(WatchedEvent watchedEvent) {
                 System.out.println(watchedEvent);
-                String path = watchedEvent.getPath();
-                List<String> childrenDataList = zkClient.getChildrenData(path);
+                String servicePath = watchedEvent.getPath();
+                System.out.println("收到子节点" + servicePath + "数据变化");
+                List<String> childrenDataList = zkClient.getChildrenData(servicePath);
+                if (CommonUtils.isEmptyList(childrenDataList)) {
+                    watchChildNodeData(servicePath);
+                    return;
+                }
                 URLChangeWrapper urlChangeWrapper = new URLChangeWrapper();
+                Map<String, String> nodeDetailInfoMap = new HashMap<>();
+                for (String providerAddress : childrenDataList) {
+                    String nodeDetailInfo = zkClient.getNodeData(servicePath + "/" + providerAddress);
+                    nodeDetailInfoMap.put(providerAddress, nodeDetailInfo);
+                }
+                urlChangeWrapper.setNodeDataUrl(nodeDetailInfoMap);
                 urlChangeWrapper.setProviderUrl(childrenDataList);
-                urlChangeWrapper.setServiceName(path.split("/")[2]);
+                urlChangeWrapper.setServiceName(servicePath.split("/")[2]);
                 // 当监听到某个节点的数据发生更新之后，会发送一个节点更新的事件，然后在事件的监听端对不同的行为做出不同的事件处理操作。
-                IRpcEvent iRpcEvent = new IRpcUpdateEvent(urlChangeWrapper);
+                FatRpcEvent fatRpcEvent = new FatRpcUpdateEvent(urlChangeWrapper);
                 //自定义的一套事件监听组件
-                IRpcListenerLoader.sendEvent(iRpcEvent);
+                FatRpcListenerLoader.sendEvent(fatRpcEvent);
                 //收到回调之后在注册一次监听，这样能保证一直都收到消息
                 // 完成本次监听同事，注册下一次监听事件保证，事件总是有效
 
                 // 此处zk的坑，因为zk节点的消息通知其实是只具有一次性的功效，所以可能会出现第一次修改节点之后发送一次通知，
                 // 之后再次修改节点不再会发送节点变更通知操作。
-                watchChildNodeData(path);
+                watchChildNodeData(servicePath);
+                for (String providerAddress : childrenDataList) {
+                    watchNodeDataChange(servicePath + "/" + providerAddress);
+                }
             }
         });
 

@@ -13,7 +13,7 @@ import java.util.List;
  * @Author fatsnake
  * @Date created in 7:26 下午 2022/1/20
  */
-public class IRpcSerializeFactory implements SerializeFactory {
+public class FatRpcSerializeFactory implements SerializeFactory {
 
     class ByteHolder {
         private byte[] bytes;
@@ -112,7 +112,7 @@ public class IRpcSerializeFactory implements SerializeFactory {
 
 
     public static void main(String[] args) {
-        IRpcSerializeFactory serializeFactory = new IRpcSerializeFactory();
+        FatRpcSerializeFactory serializeFactory = new FatRpcSerializeFactory();
         User user = new User();
         user.setId(11);
         user.setTel(12L);

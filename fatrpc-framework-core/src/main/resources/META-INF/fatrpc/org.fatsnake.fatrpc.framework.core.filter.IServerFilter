@@ -1,2 +1,5 @@
-serverLogFilterImpl=org.idea.irpc.framework.core.filter.server.ServerLogFilterImpl
-serverTokenFilterImpl=org.idea.irpc.framework.core.filter.server.ServerTokenFilterImpl
+serverLogFilterImpl=org.fatsnake.fatrpc.framework.core.filter.server.ServerLogFilterImpl
+serverTokenFilterImpl=org.fatsnake.fatrpc.framework.core.filter.server.ServerTokenFilterImpl
+serverServiceBeforeLimitFilterImpl=org.fatsnake.fatrpc.framework.core.filter.server.ServerServiceBeforeLimitFilterImpl
+serverServiceAfterLimitFilterImpl=org.fatsnake.fatrpc.framework.core.filter.server.ServerServiceAfterLimitFilterImpl
+
